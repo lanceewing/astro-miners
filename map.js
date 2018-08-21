@@ -183,6 +183,50 @@ $.Map = {
   },
   
   /**
+   * 
+   */
+  circleIsBlocked: function(x, y, r) {
+    var bottomRightBlock = $.Map.getBlockAt(x + r, y + r);
+    var topRightBlock = $.Map.getBlockAt(x + r, y - r);
+    var topLeftBlock = $.Map.getBlockAt(x - r, y - r);
+    var bottomLeftBlock = $.Map.getBlockAt(x - r, y + r);
+    if ((bottomRightBlock.type == '#') && (this.blockCircleColliding(x, y, r, bottomRightBlock))) {
+      return true;
+    } else if ((topRightBlock.type == '#') && (this.blockCircleColliding(x, y, r, topRightBlock))) {
+      return true;
+    } else if ((topLeftBlock.type == '#') && (this.blockCircleColliding(x, y, r, topLeftBlock))) {
+      return true;
+    } else if ((bottomLeftBlock.type == '#') && (this.blockCircleColliding(x, y, r, bottomLeftBlock))) {
+      return true;
+    } else {
+      return false;
+    }
+  },
+  
+  /**
+   * 
+   */
+  blockCircleColliding: function(circleX, circleY, radius, block) {
+    var rectW = $.Constants.CELL_WIDTH;
+    var rectH = $.Constants.CELL_WIDTH;
+    var rectX = block.col * $.Constants.CELL_WIDTH;
+    var rectY = block.row * $.Constants.CELL_WIDTH;
+    
+    var distX = Math.abs(circleX - rectX-rectW/2);
+    var distY = Math.abs(circleY - rectY-rectH/2);
+
+    if (distX > (rectW/2 + radius)) { return false; }
+    if (distY > (rectH/2 + radius)) { return false; }
+    
+    if (distX <= (rectW/2)) { return true; } 
+    if (distY <= (rectH/2)) { return true; }
+
+    var dx = distX-rectW/2;
+    var dy = distY-rectH/2;
+    return (dx*dx + dy*dy <= (radius * radius));
+  },
+  
+  /**
    * Updates the map array using the information in the given Block. It contains the
    * column and row to update, and the block type to set that position to.
    * 

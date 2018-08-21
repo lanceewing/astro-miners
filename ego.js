@@ -1,3 +1,20 @@
+/*
+ * IDEAS:
+ * 
+ * - Mines have energy "crystals" that usually provide the energy to drive mining machines
+ * - Alien parasites awoken from hibernation within the mined minerals
+ * - Alien parasites start absorbing energy from crystals
+ * - Some parasites absorb blue, some green, some red, leaving all crystals discharged
+ * - Automated machines shut down due to lack of power
+ * - Ego can store energy in discharged crystals to bring them back online. Needs to be white to work.
+ * - When all crystals in an area are white, that area brought back online
+ * - Lines around edges of area glow white when area online (grey when not online)
+ * - Health is shown by amount of light around ego. It reduces as health goes down.
+ * - Mining machines start up when area brough back online. They start digging.
+ * - Doors?
+ * - 
+ */
+
 /**
  * Creates a new Ego. This is the main character whom the player controls. The
  * name originates with the old Sierra On-Line 3D animated adventure games. There
@@ -7,7 +24,7 @@
  */
 $.Ego = function() {
   this.reset();
-  this.size = $.Constants.CELL_WIDTH - 1;
+  this.size = $.Constants.CELL_WIDTH - 9;
   this.texture = 0.95;
   this.canvas = this.buildCanvas();
 };
@@ -23,7 +40,7 @@ $.Ego.prototype.makeFlame = function() {
   else {
     this.location = {x: 357, y: 63};
   }
-  this.radius = ((($.Constants.CELL_WIDTH - 1) * Math.random()) / 2) + 2;
+  this.radius = ((($.Constants.CELL_WIDTH - 9) * Math.random()) / 2) + 2;
   this.life = 20+Math.random()*10;
   this.remainingLife = this.life;
 }
@@ -130,6 +147,38 @@ $.Ego.prototype.draw = function() {
 };
 
 /**
+ * 
+ */
+$.Ego.prototype.findNewPos = function() {
+  var startStep = this.step * $.Game.stepFactor;
+  var currentStep = startStep;
+  var foundNewPos = false;
+  
+  while (!foundNewPos && (currentStep > 0)) {
+    // Attempt to move.
+    var newXPos = this.x + Math.cos(this.heading) * Math.round(currentStep);
+    var newYPos = this.y + Math.sin(this.heading) * Math.round(currentStep);
+    
+    var blocked = $.Map.circleIsBlocked(newXPos, newYPos, this.size/2);
+    if (blocked) {
+      currentStep--;
+    } else {
+      foundNewPos = true;
+    }
+  }
+  
+  if (currentStep != startStep) {
+    this.heading = null;
+  }
+  
+  if (foundNewPos) {
+    return {newXPos: newXPos, newYPos: newYPos};
+  } else {
+    return null;
+  }
+};
+
+/**
  * Updates Ego for the current frame. Checks the direction keys to see if
  * Ego's direction and movement needs to change. It also handles jumping,
  * firing bullets, and hitting the Glitch.
@@ -148,30 +197,11 @@ $.Ego.prototype.update = function() {
   }
 
   if (this.heading != null) {
-    // Attempt to move.
-    var newXPos = this.x + Math.cos(this.heading) * Math.round(this.step * $.Game.stepFactor);
-    var newYPos = this.y + Math.sin(this.heading) * Math.round(this.step * $.Game.stepFactor);
-
-    // Check if new position blocked.
-    //var block = $.Map.getBlockAt(newXPos, newYPos);
-    
-    // General block check.
-    var bottomRightBlock = $.Map.getBlockAt(newXPos + $.Constants.BLOCK_SIZE, newYPos + $.Constants.BLOCK_SIZE);
-    var topRightBlock = $.Map.getBlockAt(newXPos + $.Constants.BLOCK_SIZE, newYPos - $.Constants.BLOCK_SIZE);
-    var topLeftBlock = $.Map.getBlockAt(newXPos - $.Constants.BLOCK_SIZE, newYPos - $.Constants.BLOCK_SIZE);
-    var bottomLeftBlock = $.Map.getBlockAt(newXPos - $.Constants.BLOCK_SIZE, newYPos + $.Constants.BLOCK_SIZE);
-    var blocked = 
-        (bottomRightBlock.type == '#') || (topRightBlock.type == '#') || (topLeftBlock.type == '#') || (bottomLeftBlock.type == '#');
-
-    if (blocked) {
-      // Blocked, so clear the heading.
-      this.heading = null;
-      
-    } else {
-  
+    var newPos = this.findNewPos();
+    if (newPos) {
       // Apply the new position.
-      this.y = newYPos;
-      this.x = newXPos;
+      this.y = newPos.newYPos;
+      this.x = newPos.newXPos;
 
       // Check the map bounds for wrap around.
       if (this.x < 0) {
