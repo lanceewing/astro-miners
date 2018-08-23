@@ -148,6 +148,7 @@ $.Game = {
     $.power = document.getElementById('power');
     $.msg1 = document.getElementById('msg1');
     $.msg2 = document.getElementById('msg2');
+    $.msg3 = document.getElementById('msg3');
     $.enemies = document.getElementById('enemies');
     $.time = document.getElementById('time');
     $.lowTime = document.getElementById('lowTime');
@@ -187,26 +188,6 @@ $.Game = {
     });
     
     this.renderFavicon();
-    
-    // Draw the colourful rainbow gradient background.
-    var grd = $.bgCtx.createLinearGradient(0, 0, 0, $.background.height);
-    grd.addColorStop(0, 'red');
-    grd.addColorStop(1 / 14, 'orange');
-    grd.addColorStop(2 / 14, 'yellow');
-    grd.addColorStop(3 / 14, 'green');
-    grd.addColorStop(4 / 14, 'blue');
-    grd.addColorStop(5 / 14, 'indigo');
-    grd.addColorStop(6 / 14, 'violet');
-    grd.addColorStop(7 / 14, 'red');
-    grd.addColorStop(8 / 14, 'orange');
-    grd.addColorStop(9 / 14, 'yellow');
-    grd.addColorStop(10 / 14, 'green');
-    grd.addColorStop(11 / 14, 'blue');
-    grd.addColorStop(12 / 14, 'indigo');
-    grd.addColorStop(13 / 14, 'violet');
-    grd.addColorStop(1, 'red');
-    $.bgCtx.fillStyle = grd;
-    $.bgCtx.fillRect(0, 0, $.background.width, $.background.height);
 
     $.ego = new $.Ego();
     
@@ -217,7 +198,8 @@ $.Game = {
         
     setTimeout(function() {
       // Show the title screen.
-      $.Game.showText(1, "Off the Grid");
+      $.Game.showText(1, "Astro Mine");
+      $.Game.showText(3, "OFFLINE");
           
       // Initialise and then start the game loop.
       $.Game.init(false);
@@ -227,10 +209,10 @@ $.Game = {
       $.Game.fadeIn($.wrapper);
       
       // Re-enable keyboard input after a short delay.
-      setTimeout(function() {
-        $.Game.showText(2, 'Press SPACE to start');
-        $.Game.enableKeys();
-      }, 1000);
+      //setTimeout(function() {
+      //  $.Game.showText(2, 'Click to start');
+      //  $.Game.enableKeys();
+      //}, 5000);
     }, 500);
   },
   
@@ -376,11 +358,14 @@ $.Game = {
         }
       } else if (!this.counting) {
         // We're paused and have focus, but haven't started countdown yet. Check for space key.
-        if ($.Game.keys[32]) {
+        if ($.Game.keys[32] || $.Game.mouseButton) {
+          $.Game.mouseButton = 0;
+          
           // The space key was pressed, so we start the countdown process. This gives the player
           // some time to get ready.
           this.fadeOut($.msg1);
           this.fadeOut($.msg2);
+          this.fadeOut($.msg3);
           
           // This says countdown is about to start (in 1 second).
           this.counting = true;

@@ -56,7 +56,7 @@ $.Ego.prototype.reset = function() {
   this.direction = 0;
   this.facing = 3;
   this.powerUp(694);
-  this.heading = null;
+  this.heading = 0;
   this.step = 10;
   this.hit = false;
   this.flame = [];

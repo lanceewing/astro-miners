@@ -80,20 +80,30 @@ body {
 .msg {
   z-index: 1500;
   width: 700px;
-  height: 77px;
+  height: 33px;
+  font-size: 30px;
   text-align: center;
 }
+#msg3 {
+  top: 335px;
+  text-shadow: -1px -1px 1px #fff, 1px 1px 1px #000;
+  background-color: red;
+  animation: blinker 1.5s linear infinite;
+}
 #msg1 {
-  top: 260px;
-  font-size: 75px;
-  text-shadow: 0px -1px 4px white, 0px -2px 10px yellow, 0px -10px 20px #ff8000, 0px -18px 40px red, 0px 1px 0px #999, 0px 2px 0px #888, 0px 3px 0px #777, 0px 4px 0px #666, 0px 5px 0px #555, 0px 6px 0px #444, 0px 7px 0px #333, 0px 8px 7px #001135;
-  color: #fff;
+  top: 270px;
+  text-shadow: -1px -1px 1px #fff, 1px 1px 1px #000;
+  background-color: cornflowerblue;
 }
 #msg2 {
-  top: 370px;
-  font-size: 30px;
+  top: 400px;
   text-shadow: -1px -1px 1px #fff, 1px 1px 1px #000;
-  opacity: 0.0;
+  background-color: cornflowerblue;
+}
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
 }
 .rotateTo90 {
   -webkit-animation:from0To90 2s linear forwards;
