@@ -144,6 +144,18 @@ $.Ego.prototype.draw = function() {
   $.sctx.drawImage(this.canvas, 
       (this.size * this.facing), 0, this.size, this.size,
       -(this.size/2), -(this.size/2), this.size, this.size);
+  
+  if ($.Game.dragNow) {
+    $.sctx.save();
+    $.sctx.strokeStyle = 'rgba(0, 255, 0, 0.3)';
+    $.sctx.lineWidth = 1;
+    $.sctx.moveTo(
+        $.Game.dragNow.x - (~~($.Constants.WRAP_WIDTH / 2)), 
+        $.Game.dragNow.y - (~~($.Constants.WRAP_HEIGHT / 2)));
+    $.sctx.lineTo(0, 0);
+    $.sctx.stroke();
+    $.sctx.restore();
+  }
 };
 
 /**
