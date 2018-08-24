@@ -36,6 +36,15 @@ $.Util.fillCircle = function(ctx, x, y, d, colour) {
 };
 
 /**
+ * 
+ */
+$.Util.dist = function(obj1, obj2) {
+  var dx = obj1.x - obj2.x;
+  var dy = obj1.y - obj2.y;
+  return Math.sqrt((dx * dx) + (dy * dy));
+};
+
+/**
  * Utility function for obtaining a 2D canvas from a newly created canvas of the 
  * given width and height.
  *  

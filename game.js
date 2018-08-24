@@ -11,6 +11,9 @@ $.Game = {
   xMouse: 0,
   yMouse: 0,
   mouseButton: 0,
+  dragStart: null,
+  dragNow: null,
+  dragEnd: null,
     
   /**
    * The time of the last animation frame. 
@@ -167,22 +170,53 @@ $.Game = {
     
     // Set up the keyboard & mouse event handlers (size reduced way)
     document.onmousedown = function(e) {
+      $.Game.dragStart = { 
+          x: e.pageX - $.wrapper.offsetLeft, 
+          y: e.pageY - $.wrapper.offsetTop
+      };
       $.Game.mouseButton = 1;
       e.preventDefault();
     };
     document.onmouseup = function(e) {
+      $.Game.dragEnd = { 
+          x: e.pageX - $.wrapper.offsetLeft, 
+          y: e.pageY - $.wrapper.offsetTop
+      };
       $.Game.mouseButton = 0;
       e.preventDefault();
     };
     document.onmousemove = function(e) {
       $.Game.xMouse = e.pageX - $.wrapper.offsetLeft;
       $.Game.yMouse = e.pageY - $.wrapper.offsetTop;
+      if ($.Game.mouseButton == 1) {
+        $.Game.dragNow = { 
+            x: e.pageX - $.wrapper.offsetLeft, 
+            y: e.pageY - $.wrapper.offsetTop
+        }
+      }
     };
     document.ontouchend = function(e) {
+      $.Game.dragEnd = { 
+          x: e.changedTouches[0].pageX - $.wrapper.offsetLeft, 
+          y: e.changedTouches[0].pageY - $.wrapper.offsetTop
+      };
+      
       $.Game.xMouse = e.changedTouches[0].pageX - $.wrapper.offsetLeft;
       $.Game.yMouse = e.changedTouches[0].pageY - $.wrapper.offsetTop;
       $.Game.mouseButton = 1;
-      e.preventDefault();
+      if (e.cancelable) e.preventDefault();
+    };
+    document.ontouchstart = function(e) {
+      $.Game.dragStart = { 
+          x: e.changedTouches[0].pageX - $.wrapper.offsetLeft, 
+          y: e.changedTouches[0].pageY - $.wrapper.offsetTop
+      };
+    };
+    document.ontouchmove = function(e) {
+      $.Game.dragNow = { 
+          x: e.changedTouches[0].pageX - $.wrapper.offsetLeft, 
+          y: e.changedTouches[0].pageY - $.wrapper.offsetTop
+      };
     };
 
     // Register the event listeners for handling auto pause when the game loses focus.

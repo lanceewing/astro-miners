@@ -185,9 +185,19 @@ $.Ego.prototype.findNewPos = function() {
  */
 $.Ego.prototype.update = function() {
   // Handle player "firing". It actually fires the whole ship.
-  if ($.Game.mouseButton) {
+  //if ($.Game.mouseButton) {
+  if ($.Game.dragEnd && $.Game.dragStart) {
     $.Game.mouseButton = 0;
+    
+    // TODO: Temporary hack
+    $.Game.xMouse = $.Game.dragEnd.x;
+    $.Game.yMouse = $.Game.dragEnd.y;
 
+    var dragDist = $.Util.dist($.Game.dragEnd, $.Game.dragStart); 
+    console.log("dist: " + dragDist);
+    
+    $.Game.dragEnd = $.Game.dragStart = $.Game.dragNow = null;
+    
     if (this.heading == null) {
       // The player is always in the middle of the window, so we calculate the heading from that point.
       var playerScreenX = (~~($.Constants.WRAP_WIDTH / 2));
