@@ -178,6 +178,12 @@ $.Game = {
       $.Game.xMouse = e.pageX - $.wrapper.offsetLeft;
       $.Game.yMouse = e.pageY - $.wrapper.offsetTop;
     };
+    document.ontouchend = function(e) {
+      $.Game.xMouse = e.changedTouches[0].pageX - $.wrapper.offsetLeft;
+      $.Game.yMouse = e.changedTouches[0].pageY - $.wrapper.offsetTop;
+      $.Game.mouseButton = 1;
+      e.preventDefault();
+    };
 
     // Register the event listeners for handling auto pause when the game loses focus.
     window.addEventListener('blur', function(e) {
@@ -209,10 +215,14 @@ $.Game = {
       $.Game.fadeIn($.wrapper);
       
       // Re-enable keyboard input after a short delay.
-      //setTimeout(function() {
-      //  $.Game.showText(2, 'Click to start');
-      //  $.Game.enableKeys();
-      //}, 5000);
+      setTimeout(function() {
+        if ($.Game.starting && !$.Game.counting) {
+          $.Game.showText(2, 'Click to start');
+        }
+      }, 5000);
+      
+      $.Game.enableKeys();
+      
     }, 500);
   },
   
@@ -235,7 +245,7 @@ $.Game = {
     this.bullets = [];
     
     // Load the current low time from local storage (equivalent to hi score).
-    this.lowTime = (localStorage? localStorage.getItem('lowTime') || 3599000 : 3599000);
+    this.lowTime = 3599000;// (localStorage? localStorage.getItem('lowTime') || 3599000 : 3599000);
     this.lowTimeStr = this.buildTimeString(this.lowTime);
     
     // Clear the enemies
@@ -320,7 +330,7 @@ $.Game = {
         $.Sound.pause('music');
         this.paused = true;
         this.showText(1, 'Paused');
-        this.showText(2, 'Press SPACE to start');
+        this.showText(2, 'Click to start');
       } else {
         // Game has focus and is not paused, so execute normal game loop, which is
         // to update all objects on the screen.
@@ -330,7 +340,7 @@ $.Game = {
       // We're paused, and have focus.
       if (this.countdown) {
         // If we're in countdown mode, update the countdown based on elapsed time.
-        this.countdown = Math.max(this.countdown - this.delta, 0);
+        this.countdown = Math.max(this.countdown - 1000, Math.max(this.countdown - this.delta, 0));
         
         // Calculate count value (i.e. countdown / 1000) then compare with currently displayed count.
         var count = Math.ceil(this.countdown / 1000);
@@ -372,13 +382,16 @@ $.Game = {
           
           // Start the countdown in 1 second. Gives the previous messages time to fade.
           setTimeout(function() {
-            if (!$.Game.running) $.Game.init(false);
+            // TODO: This stops the countdown from working properly. Fix when implementing game over.
+            //if (!$.Game.running) $.Game.init(false);
             $.Game.countdown = 3000;
             $.Game.showText(2, 'Get ready', true, 2500);
           }, 1000);
+
           $.Sound.play('music');
         }
       }
+    
       if ($.Game.starting) {
         this.updateObjects();
       }
@@ -428,7 +441,7 @@ $.Game = {
     // After 5 seconds, enable keyboard input again and ask the player to press 
     // SPACE to restart.
     setTimeout(function() {
-      $.Game.showText(2, 'Press SPACE to restart');
+      $.Game.showText(2, 'Click to restart');
       $.Game.enableKeys();
     }, 3000);
   },
@@ -456,7 +469,7 @@ $.Game = {
     // After 5 seconds, enable keyboard input again and ask the player to press 
     // SPACE to restart.
     setTimeout(function() {
-      $.Game.showText(2, 'Press SPACE to restart');
+      $.Game.showText(2, 'Click to restart');
       $.Game.enableKeys();
     }, 3000);
   },

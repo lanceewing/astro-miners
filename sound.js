@@ -135,8 +135,16 @@ $.Sound = {
   play: function(name) {
     if (this.active) {
       var sound = this.sounds[name];
-      sound.pool[sound.tick].play();
-      sound.tick < sound.count - 1 ? sound.tick++ : sound.tick = 0;
+      var promise = sound.pool[sound.tick].play();
+      if (promise !== undefined) {
+        promise.then(_ => {
+          // Autoplay started!
+          sound.tick < sound.count - 1 ? sound.tick++ : sound.tick = 0;
+        }).catch(error => {
+          // Autoplay was prevented.
+          // Show a "Play" button so that user can start playback.
+        });
+      }
     }
   },
   
