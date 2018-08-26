@@ -119,23 +119,11 @@ $.Ego.prototype.draw = function() {
 
   var newFlames = [];
   
+  //Store flames that need to be recreated.
   for (var i = 0; i < this.flame.length; i++) {
     var p = this.flame[i];
-    p.opacity = Math.round(p.remainingLife/p.life*100)/100
-    var tempX = p.location.x + Math.cos(this.heading);
-    var tempY = p.location.y + Math.sin(this.heading);
-    
-    $.Util.fillCircle(
-        $.sctx, 
-        tempX - this.x - p.radius - 1,
-        tempY - this.y - p.radius - 1, 
-        p.radius * 2,  
-        'rgba(226, 88, 34,' + p.opacity + ')');
-    
     p.remainingLife--;
     p.radius--;
-    p.location.x -= p.speed.x;
-    p.location.y -= p.speed.y;
 
     // Store flames that need to be recreated.
     if ((p.remainingLife < 0) || (p.radius < 0)) {
@@ -151,7 +139,25 @@ $.Ego.prototype.draw = function() {
     flamePos.y += Math.sin(this.heading) * flameDist;
     this.flame[newFlames[i]] = new this.makeFlame(flamePos);
   }
+  
+  // Now render the updated flames.
+  for (var i = 0; i < this.flame.length; i++) {
+    var p = this.flame[i];
+    p.opacity = Math.round(p.remainingLife/p.life*100)/100
+    var tempX = p.location.x + Math.cos(this.heading);
+    var tempY = p.location.y + Math.sin(this.heading);
+    
+    $.Util.fillCircle(
+        $.sctx, 
+        Math.round(tempX - this.x - p.radius - 1),
+        Math.round(tempY - this.y - p.radius - 1), 
+        Math.round(p.radius * 2),  
+        'rgba(226, 88, 34,' + p.opacity + ')');
 
+    p.location.x -= p.speed.x;
+    p.location.y -= p.speed.y;
+  }
+  
   $.sctx.globalCompositeOperation = "source-over";
   $.sctx.drawImage(this.canvas, 
       (this.size * this.facing), 0, this.size, this.size,
