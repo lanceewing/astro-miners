@@ -32,10 +32,10 @@ $.Ego = function() {
 /**
  * Makes a particle of the flame trail behind the ship.
  */
-$.Ego.prototype.makeFlame = function() {
+$.Ego.prototype.makeFlame = function(pos) {
   this.speed = {x: -1.5+Math.random()*1.5, y: -1.5+Math.random()*1.5};
-  if ($.ego && $.ego.x && $.ego.y) {
-    this.location = {x: $.ego.x, y: $.ego.y};
+  if (pos) {
+    this.location = {x: pos.x, y: pos.y};
   }
   else {
     this.location = {x: 357, y: 63};
@@ -49,8 +49,8 @@ $.Ego.prototype.makeFlame = function() {
  * Resets Ego's state back to the game start state.
  */
 $.Ego.prototype.reset = function() {
-  this.x = 357;
-  this.y = 63;
+  this.lastX = this.x = 357;
+  this.lastY = this.y = 63;
   this.power = 0;
   this.health = 0;
   this.direction = 0;
@@ -117,6 +117,8 @@ $.Ego.prototype.powerUp = function(amount) {
 $.Ego.prototype.draw = function() {
   $.sctx.globalCompositeOperation = "lighter";
 
+  var newFlames = [];
+  
   for (var i = 0; i < this.flame.length; i++) {
     var p = this.flame[i];
     p.opacity = Math.round(p.remainingLife/p.life*100)/100
@@ -135,11 +137,21 @@ $.Ego.prototype.draw = function() {
     p.location.x -= p.speed.x;
     p.location.y -= p.speed.y;
 
+    // Store flames that need to be recreated.
     if ((p.remainingLife < 0) || (p.radius < 0)) {
-      this.flame[i] = new this.makeFlame();
+      newFlames.push(i);
     }
   }
   
+  // Calculate dist moved, then divide per flame.
+  var flamePos = {x: this.lastX, y: this.lastY};
+  var flameDist = Math.round($.Util.dist($.ego, flamePos)) / newFlames.length;
+  for (var i=0; i < newFlames.length; i++) {
+    flamePos.x += Math.cos(this.heading) * flameDist;
+    flamePos.y += Math.sin(this.heading) * flameDist;
+    this.flame[newFlames[i]] = new this.makeFlame(flamePos);
+  }
+
   $.sctx.globalCompositeOperation = "source-over";
   $.sctx.drawImage(this.canvas, 
       (this.size * this.facing), 0, this.size, this.size,
@@ -218,6 +230,9 @@ $.Ego.prototype.update = function() {
     }
   }
 
+  this.lastX = this.x;
+  this.lastY = this.y;
+  
   if (this.heading != null) {
     var newPos = this.findNewPos();
     if (newPos) {
