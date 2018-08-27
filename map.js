@@ -34,8 +34,10 @@ $.Map = {
       this.contexts[i] = this.canvases[i].getContext('2d');
     }
     
-    this.draw(0);
     this.draw(1);
+    setTimeout(function() {
+      $.Map.draw(0);
+    }, 1);
   },
   
   /**

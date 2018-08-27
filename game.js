@@ -143,10 +143,25 @@ $.Game = {
     }
   },
   
+  lastLogTime: null,
+  
+  logTime: function(msg) {
+    var date = new Date();
+    var timestamp = date.getTime();
+    var duration = 0;
+    if (this.lastLogTime) {
+      duration = timestamp - this.lastLogTime;
+    }
+    this.lastLogTime = timestamp;
+    console.log("" + timestamp + " (" + duration + "): " + msg);
+  },
+  
   /**
    * Starts the game. 
    */
   start: function() {
+    this.logTime("ENTERing start()");
+    
     // Get a reference to each of the elements in the DOM that we'll need to update.
     $.power = document.getElementById('power');
     $.msg1 = document.getElementById('msg1');
@@ -157,16 +172,14 @@ $.Game = {
     $.lowTime = document.getElementById('lowTime');
     $.wrapper = document.getElementById('wrap');
     
+    $.Game.fadeIn($.wrapper);
+    
     // Set up the graphics objects we'll need
     $.screen = document.getElementById('s');
     $.sctx = $.screen.getContext('2d');
     $.sctx.imageSmoothingEnabled = false;
     
-    // Background canvas, for the rainbow gradient.
-    $.background = document.createElement('canvas');
-    $.background.width = 152 * $.Constants.CELL_WIDTH * 2;
-    $.background.height = 104 * $.Constants.CELL_WIDTH * 2;
-    $.bgCtx = $.background.getContext('2d');
+    this.logTime("Before setting up event handlers");
     
     // Set up the keyboard & mouse event handlers (size reduced way)
     document.onmousedown = function(e) {
@@ -227,37 +240,59 @@ $.Game = {
       $.Game.hasFocus = true;
     });
     
+    this.logTime("After setting up event handlers. Before favicon.");
+    
     this.renderFavicon();
 
+    this.logTime("After favicon. Before Ego constructor call.");
+    
     $.ego = new $.Ego();
     
+    this.logTime("Before sound init.");
+    
     // The sound generation might be a bit time consuming on slower machines.
-    $.Sound.init();
+    setTimeout(function() {
+      $.Sound.init();
+    }, 1000);
+    
+    this.logTime("Before disabling keys");
     
     $.Game.disableKeys();
-        
+    
+    this.logTime("After disabling keys. Before show title setTimeout.");
+    
     setTimeout(function() {
+      $.Game.logTime("In show title setTimeout function.");
+      
       // Show the title screen.
       $.Game.showText(1, "Astro Mine");
       $.Game.showText(3, "OFFLINE");
-          
+      
+      $.Game.logTime("Before Game.init");
+      
       // Initialise and then start the game loop.
       $.Game.init(false);
-      $.Sound.play('music');
-      $.Game.loop();
+      $.Game.logTime("After Game.init. Before calling game loop first time.");
+      requestAnimationFrame($.Game._loop);
       
-      $.Game.fadeIn($.wrapper);
+      $.Game.logTime("After game loop for first time. Before wrapper fade in.");
       
-      // Re-enable keyboard input after a short delay.
+      $.Game.logTime("After wrapper fade in. Before calling setTimeout for click start.");
+      
+      $.Game.fadeOut($.msg2);
       setTimeout(function() {
         if ($.Game.starting && !$.Game.counting) {
           $.Game.showText(2, 'Click to start');
         }
       }, 5000);
       
+      $.Game.logTime("Before enable keys");
       $.Game.enableKeys();
+      $.Game.logTime("After enable keys");
       
-    }, 500);
+    }, 1);
+    
+    this.logTime("After show title setTimeout.");
   },
   
   /**
@@ -266,7 +301,9 @@ $.Game = {
    * @param {Boolean} running Whether or not we should say that the Game is now running.
    */
   init: function(running) {
+    $.Game.logTime("ENTERing Game.init. Before ego.reset");
     $.ego.reset();
+    $.Game.logTime("After ego.reset");
 
     this.time = 0;
     this.rotateTimer = $.Constants.ROTATE_INTERVAL;
@@ -286,7 +323,9 @@ $.Game = {
     this.enemyCount = 0;
     this.enemyMap = {};
     
-    $.Map.init();
+    $.Game.logTime("Before Map.init");
+    $.Map.init();  // TODO: Time consuming. 500ms in chrome, 3500ms in Firefox, 8500ms in Edge.
+    $.Game.logTime("After Map.init");
     
     // Tells the game loop that the game is now running. During the game over state,
     // this flag is false.
@@ -295,6 +334,8 @@ $.Game = {
     
     // Clear any pre-existing rotate class.
     $.screen.className = '';
+    
+    $.Game.logTime("EXITing Game.init");
   },
   
   /**
@@ -686,10 +727,10 @@ $.Game = {
     // Draw all.
     this.draw();
     
-    // Check for game won.
-    if (this.enemyCount == 0) {
-      $.Game.won();
-    }
+//    // Check for game won.
+//    if (this.enemyCount == 0) {
+//      $.Game.won();
+//    }
   },
   
   /**

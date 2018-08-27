@@ -89,17 +89,18 @@ body {
   text-shadow: -1px -1px 1px #fff, 1px 1px 1px #000;
   background-color: red;
   animation: blinker 1.5s linear infinite;
+  display: none;
 }
 #msg1 {
   top: 270px;
   text-shadow: -1px -1px 1px #fff, 1px 1px 1px #000;
   background-color: cornflowerblue;
+  display: none;
 }
 #msg2 {
   top: 400px;
   text-shadow: -1px -1px 1px #fff, 1px 1px 1px #000;
-  background-color: #6495ed29;
-  display: none;
+  /*background-color: #6495ed29;*/
 }
 @keyframes blinker {
   50% {
