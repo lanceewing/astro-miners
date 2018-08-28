@@ -220,13 +220,13 @@ $.Ego.prototype.update = function() {
     var playerScreenY = (~~($.Constants.WRAP_HEIGHT / 2));
     var clickHeading = Math.atan2(playerScreenY - $.Game.dragEnd.y, playerScreenX - $.Game.dragEnd.x) + ((($.Game.rotateAngle + 180) % 360) * Math.PI / 180);
     var dragDist = $.Util.dist($.Game.dragEnd, $.Game.dragStart);
+    var dragDuration = $.Game.dragEnd.t - $.Game.dragStart.t;
     
     $.Game.dragEnd = $.Game.dragStart = $.Game.dragNow = null;
     
-    if (dragDist > 5) {
-      // If the drag distance is beyond a threshold indicating there was a drag (and
-      // not just a click in place), then ego will move. 
-      // TODO: Try using drag duration as an indication of fire vs movement.
+    if ((dragDist > 5) && (dragDuration > 200)) {
+      // If the drag distance and duration are beyond a threshold indicating there 
+      // was a drag (and not just a click in place), then ego will move.
       if (this.heading == null) {
         this.heading = clickHeading;
       }
