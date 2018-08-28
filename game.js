@@ -265,7 +265,7 @@ $.Game = {
       $.Game.logTime("In show title setTimeout function.");
       
       // Show the title screen.
-      $.Game.showText(1, "Astro Mine");
+      $.Game.showText(1, "Astro Mine:");
       $.Game.showText(3, "OFFLINE");
       
       $.Game.logTime("Before Game.init");

@@ -49,7 +49,7 @@ $.Bullet.prototype.draw = function(ctx, offsetX, offsetY) {
   for (var i=0; i<(this.step*5); i+=2) {
     var tempX = this.positions[0].x + Math.cos(this.heading) * Math.round(i);
     var tempY = this.positions[0].y + Math.sin(this.heading) * Math.round(i);
-    $.Util.fillCircle(ctx, tempX - offsetX, tempY - offsetY, 5 * i/(this.step*5),  'rgba(255,255,200,' + (0.3 * (i/(this.step*5))) + ')');
+    $.Util.fillCircle(ctx, tempX - offsetX, tempY - offsetY, 5 * i/(this.step*5),  'rgba(226,88,34,' + (0.3 * (i/(this.step*5))) + ')');
   }
   
   // Remember the last 5 draw positions. May or may not need them :-)

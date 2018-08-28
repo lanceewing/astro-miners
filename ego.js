@@ -209,31 +209,38 @@ $.Ego.prototype.findNewPos = function() {
 };
 
 /**
- * Updates Ego for the current frame. Checks the direction keys to see if
- * Ego's direction and movement needs to change. It also handles jumping,
- * firing bullets, and hitting the Glitch.
+ * Updates Ego for the current frame. 
  */
 $.Ego.prototype.update = function() {
-  // Handle player "firing". It actually fires the whole ship.
-  //if ($.Game.mouseButton) {
   if ($.Game.dragEnd && $.Game.dragStart) {
     $.Game.mouseButton = 0;
-    
-    // TODO: Temporary hack
-    $.Game.xMouse = $.Game.dragEnd.x;
-    $.Game.yMouse = $.Game.dragEnd.y;
 
-    var dragDist = $.Util.dist($.Game.dragEnd, $.Game.dragStart); 
-    console.log("dist: " + dragDist);
+    // The player is always in the middle of the window, so we calculate the heading from that point.
+    var playerScreenX = (~~($.Constants.WRAP_WIDTH / 2));
+    var playerScreenY = (~~($.Constants.WRAP_HEIGHT / 2));
+    var clickHeading = Math.atan2(playerScreenY - $.Game.dragEnd.y, playerScreenX - $.Game.dragEnd.x) + ((($.Game.rotateAngle + 180) % 360) * Math.PI / 180);
+    var dragDist = $.Util.dist($.Game.dragEnd, $.Game.dragStart);
     
     $.Game.dragEnd = $.Game.dragStart = $.Game.dragNow = null;
     
-    if (this.heading == null) {
-      // The player is always in the middle of the window, so we calculate the heading from that point.
-      var playerScreenX = (~~($.Constants.WRAP_WIDTH / 2));
-      var playerScreenY = (~~($.Constants.WRAP_HEIGHT / 2));
-      this.heading = Math.atan2(playerScreenY - $.Game.yMouse, playerScreenX - $.Game.xMouse) + ((($.Game.rotateAngle + 180) % 360) * Math.PI / 180);
+    if (dragDist > 5) {
+      // If the drag distance is beyond a threshold indicating there was a drag (and
+      // not just a click in place), then ego will move. 
+      // TODO: Try using drag duration as an indication of fire vs movement.
+      if (this.heading == null) {
+        this.heading = clickHeading;
+      }
+    } else {
+      // The player can only fire 5 bullets at once.
+      for (var bulletNum = 0; bulletNum < 5; bulletNum++) {
+        if ($.Game.bullets[bulletNum] == null) {
+          $.Game.bullets[bulletNum] = new $.Bullet(this.x, this.y, clickHeading);
+          $.Sound.play('bomb');
+          break;
+        }
+      }
     }
+    
   }
 
   this.lastX = this.x;
