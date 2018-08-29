@@ -177,7 +177,7 @@ $.Game = {
     // Set up the graphics objects we'll need
     $.screen = document.getElementById('s');
     $.sctx = $.screen.getContext('2d');
-    $.sctx.imageSmoothingEnabled = false;
+    //$.sctx.imageSmoothingEnabled = false;
     
     this.logTime("Before setting up event handlers");
     
@@ -210,7 +210,8 @@ $.Game = {
       if (($.Game.mouseButton == 1) && ($.Game.running)) {
         $.Game.dragNow = { 
             x: e.pageX - $.wrapper.offsetLeft, 
-            y: e.pageY - $.wrapper.offsetTop
+            y: e.pageY - $.wrapper.offsetTop,
+            t: (new Date()).getTime()
         }
       }
     };
@@ -240,7 +241,8 @@ $.Game = {
       if ($.Game.running) {
         $.Game.dragNow = { 
             x: e.changedTouches[0].pageX - $.wrapper.offsetLeft, 
-            y: e.changedTouches[0].pageY - $.wrapper.offsetTop
+            y: e.changedTouches[0].pageY - $.wrapper.offsetTop,
+            t: (new Date()).getTime()
         };
       }
     };
@@ -762,8 +764,14 @@ $.Game = {
       minutes = 99;
       seconds = 59;
     }
+    if (seconds != this.lastSeconds) {
+      this.rotateAngle = ((this.rotateAngle + .1) % 360);
+    }
+    this.lastSeconds = seconds;
     return (('00' + minutes).substr(-2) + ':' + ('00' + seconds).substr(-2));
   },
+  
+  lastSeconds: 0,
   
   /**
    * Renders the favicon. It does this by rendering Ego facing forward and then resizes this
@@ -786,10 +794,13 @@ $.Game = {
     $.sctx.clearRect(0, 0, 1000, 1000);
 
     $.sctx.save();
+    $.sctx.transform(1, 0, 0, 1, 0, 0);
 
     // Translating to the middle of the window allows it to rotate around the middle.
     $.sctx.translate(~~($.Constants.SCREEN_WIDTH / 2), ~~($.Constants.SCREEN_HEIGHT / 2));
 
+    $.sctx.rotate(-((this.rotateAngle % 360) * Math.PI / 180));
+    
     $.sctx.save();
 
     // Calculates the diagonal of the square formed by using the longest of the inner window
@@ -815,7 +826,7 @@ $.Game = {
 
     if ($.Game.running) {
       $.sctx.save();
-      $.sctx.rotate(((this.rotateAngle) * Math.PI / 180));
+      //$.sctx.rotate(((this.rotateAngle) * Math.PI / 180));
       $.ego.draw();
       $.sctx.restore();
     }

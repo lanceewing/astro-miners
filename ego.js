@@ -164,15 +164,20 @@ $.Ego.prototype.draw = function() {
       -(this.size/2), -(this.size/2), this.size, this.size);
   
   if ($.Game.dragNow) {
-    $.sctx.save();
-    $.sctx.strokeStyle = 'rgba(0, 255, 0, 0.3)';
-    $.sctx.lineWidth = 1;
-    $.sctx.moveTo(
-        $.Game.dragNow.x - (~~($.Constants.WRAP_WIDTH / 2)), 
-        $.Game.dragNow.y - (~~($.Constants.WRAP_HEIGHT / 2)));
-    $.sctx.lineTo(0, 0);
-    $.sctx.stroke();
-    $.sctx.restore();
+    var dragDist = $.Util.dist($.Game.dragNow, $.Game.dragStart);
+    var dragDuration = $.Game.dragNow.t - $.Game.dragStart.t;
+    if ((dragDist > 5) && (dragDuration > 200)) {
+      $.sctx.save();
+      $.sctx.strokeStyle = 'rgba(0, 255, 0, 0.3)';
+      $.sctx.lineWidth = 1;
+      $.sctx.rotate((($.Game.rotateAngle) * Math.PI / 180));
+      $.sctx.moveTo(
+          $.Game.dragNow.x - (~~($.Constants.WRAP_WIDTH / 2)), 
+          $.Game.dragNow.y - (~~($.Constants.WRAP_HEIGHT / 2)));
+      $.sctx.lineTo(0, 0);
+      $.sctx.stroke();
+      $.sctx.restore();
+    }
   }
 };
 
@@ -227,9 +232,7 @@ $.Ego.prototype.update = function() {
     if ((dragDist > 5) && (dragDuration > 200)) {
       // If the drag distance and duration are beyond a threshold indicating there 
       // was a drag (and not just a click in place), then ego will move.
-      if (this.heading == null) {
-        this.heading = clickHeading;
-      }
+      if (this.heading == null) this.heading = clickHeading;
     } else {
       // The player can only fire 5 bullets at once.
       for (var bulletNum = 0; bulletNum < 5; bulletNum++) {
@@ -240,7 +243,6 @@ $.Ego.prototype.update = function() {
         }
       }
     }
-    
   }
 
   this.lastX = this.x;
