@@ -43,7 +43,7 @@ $.Ego.prototype.makeFlame = function(pos) {
   this.radius = ((($.Constants.CELL_WIDTH - 9) * Math.random()) / 2) + 2;
   this.life = 20+Math.random()*10;
   this.remainingLife = this.life;
-}
+};
 
 /**
  * Resets Ego's state back to the game start state.
@@ -119,11 +119,11 @@ $.Ego.prototype.draw = function() {
 
   var newFlames = [];
   
-  //Store flames that need to be recreated.
+  // Store flames that need to be recreated.
   for (var i = 0; i < this.flame.length; i++) {
     var p = this.flame[i];
-    p.remainingLife--;
-    p.radius--;
+    p.remainingLife -= $.Game.stepFactor;
+    p.radius -= $.Game.stepFactor;
 
     // Store flames that need to be recreated.
     if ((p.remainingLife < 0) || (p.radius < 0)) {

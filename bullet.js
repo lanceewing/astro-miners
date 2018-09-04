@@ -11,50 +11,96 @@ $.Bullet = function(x, y, heading) {
   this.y = y;
   this.heading = heading;
   this.step = 10;
-  this.positions = [];
-  this.positions.push({x: this.x, y: this.y});
   this.hit = false;
+  this.size = 4;
+};
+
+// TODO: Move this into a common base class. Ego has it as well.
+$.Bullet.prototype.findNewPos = function() {
+  var startStep = this.step * $.Game.stepFactor;
+  var currentStep = startStep;
+  var foundNewPos = false;
+  
+  while (!foundNewPos && (currentStep > 0)) {
+    console.log("currentStep: " + currentStep);
+    
+    // Attempt to move.
+    var newXPos = this.x + Math.cos(this.heading) * Math.round(currentStep);
+    var newYPos = this.y + Math.sin(this.heading) * Math.round(currentStep);
+    
+    var blocked = $.Map.circleIsBlocked(newXPos, newYPos, this.size/2);
+    if (blocked) {
+      currentStep--;
+    } else {
+      foundNewPos = true;
+    }
+  }
+  
+  if (currentStep != startStep) {
+    this.hit = true;
+  }
+  
+  if (foundNewPos) {
+    return {newXPos: newXPos, newYPos: newYPos};
+  } else {
+    return null;
+  }
 };
 
 /**
- * Moves this Bullet based on its current heading and step size.
+ *         this.bullets[bulletNum].move();Moves this Bullet based on its current heading and step size.
  */
 $.Bullet.prototype.move = function() {
-  this.x += Math.cos(this.heading) * Math.round(this.step);
-  this.y += Math.sin(this.heading) * Math.round(this.step);
-  
-  // Check the map bounds for wrap around.
-  if (this.x < 0) {
-    // Increment by width of room in pixels.
-    this.x += $.Constants.ROOM_X_PIXELS;
-  }
-  if (this.y < 0) {
-    // Increment by height of room in pixels.
-    this.y += $.Constants.ROOM_Y_PIXELS;
-  }
-  if (this.x >= $.Constants.ROOM_X_PIXELS) {
-    // Decrement by width of room in pixels.
-    this.x -= $.Constants.ROOM_X_PIXELS;
-  }
-  if (this.y >= $.Constants.ROOM_Y_PIXELS) {
-    // Decrement by height of room in pixels.
-    this.y -= $.Constants.ROOM_Y_PIXELS;
+  if (this.heading != null && !this.hit) {
+    var newPos = this.findNewPos();
+    if (newPos) {
+      // Apply the new position.
+      this.y = newPos.newYPos;
+      this.x = newPos.newXPos;
+    
+      // Check the map bounds for wrap around.
+      if (this.x < 0) {
+        // Increment by width of room in pixels.
+        this.x += $.Constants.ROOM_X_PIXELS;
+      }
+      if (this.y < 0) {
+        // Increment by height of room in pixels.
+        this.y += $.Constants.ROOM_Y_PIXELS;
+      }
+      if (this.x >= $.Constants.ROOM_X_PIXELS) {
+        // Decrement by width of room in pixels.
+        this.x -= $.Constants.ROOM_X_PIXELS;
+      }
+      if (this.y >= $.Constants.ROOM_Y_PIXELS) {
+        // Decrement by height of room in pixels.
+        this.y -= $.Constants.ROOM_Y_PIXELS;
+      }
+    }
   }
 };
 
 /**
- * Draws the bullet using its previous positions to create a streaking comet effect.
+ * Draws the bullet.
  */
 $.Bullet.prototype.draw = function(ctx, offsetX, offsetY) {
-  for (var i=0; i<(this.step*5); i+=2) {
-    var tempX = this.positions[0].x + Math.cos(this.heading) * Math.round(i);
-    var tempY = this.positions[0].y + Math.sin(this.heading) * Math.round(i);
-    $.Util.fillCircle(ctx, tempX - offsetX, tempY - offsetY, 5 * i/(this.step*5),  'rgba(226,88,34,' + (0.3 * (i/(this.step*5))) + ')');
+  ctx.globalCompositeOperation = "lighter";
+  ctx.shadowColor   = 'rgba(226,88,34, 1)';
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.shadowBlur    = 10;
+  var bulletLength = this.step*5;
+  for (var i=0; i<bulletLength; i+=2) {
+    var tempX = this.x - Math.cos(this.heading) * i;
+    var tempY = this.y - Math.sin(this.heading) * i;
+    $.Util.fillCircle(ctx, 
+        Math.round(tempX - offsetX - (this.size/2)), 
+        Math.round(tempY - offsetY - (this.size/2)), 
+        Math.round(this.size * (bulletLength-i)/bulletLength),  
+        'rgba(226,88,34,' + (0.2 + Math.random() * 0.6) + ')');
   }
-  
-  // Remember the last 5 draw positions. May or may not need them :-)
-  this.positions.push({x: this.x, y: this.y});
-  if (this.positions.length > 5) {
-    this.positions = this.positions.slice(-5);
-  }
+  ctx.globalCompositeOperation = "source-over";
+  ctx.shadowColor = 'rgba(0,0,0,0)';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
 };
