@@ -14,6 +14,7 @@ $.Game = {
   dragStart: null,
   dragNow: null,
   dragEnd: null,
+  
     
   /**
    * The time of the last animation frame. 
@@ -106,6 +107,8 @@ $.Game = {
    */
   lowTime: 3599000,
   
+  miners: [],
+  
   /**
    * Adds the given Enemy to the enemy Map in which we hold all enemies in 
    * the game.
@@ -171,10 +174,14 @@ $.Game = {
     $.time = document.getElementById('time');
     $.lowTime = document.getElementById('lowTime');
     $.wrapper = document.getElementById('wrap');
+    $.miners = document.getElementById('miners');
+    
+    this.addMiners();
     
     $.Game.fadeIn($.wrapper);
     
     // Set up the graphics objects we'll need
+    $.input = document.getElementById('screen');
     $.screen = document.getElementById('s');
     $.sctx = $.screen.getContext('2d');
     //$.sctx.imageSmoothingEnabled = false;
@@ -182,18 +189,19 @@ $.Game = {
     this.logTime("Before setting up event handlers");
     
     // Set up the keyboard & mouse event handlers (size reduced way)
-    document.onmousedown = function(e) {
+    $.input.onmousedown = function(e) {
       if ($.Game.running) {
         $.Game.dragStart = { 
             x: e.pageX - $.wrapper.offsetLeft, 
             y: e.pageY - $.wrapper.offsetTop,
             t: (new Date()).getTime()
         };
+        $.Game.dragEnd = $.Game.dragNow = null;
       }
       $.Game.mouseButton = 1;
       e.preventDefault();
     };
-    document.onmouseup = function(e) {
+    $.input.onmouseup = function(e) {
       if ($.Game.running) {
         $.Game.dragEnd = { 
             x: e.pageX - $.wrapper.offsetLeft, 
@@ -204,7 +212,7 @@ $.Game = {
       $.Game.mouseButton = 0;
       e.preventDefault();
     };
-    document.onmousemove = function(e) {
+    $.input.onmousemove = function(e) {
       $.Game.xMouse = e.pageX - $.wrapper.offsetLeft;
       $.Game.yMouse = e.pageY - $.wrapper.offsetTop;
       if (($.Game.mouseButton == 1) && ($.Game.running)) {
@@ -215,7 +223,7 @@ $.Game = {
         }
       }
     };
-    document.ontouchend = function(e) {
+    $.input.ontouchend = function(e) {
       if ($.Game.running) {
         $.Game.dragEnd = { 
             x: e.changedTouches[0].pageX - $.wrapper.offsetLeft, 
@@ -228,16 +236,17 @@ $.Game = {
       $.Game.mouseButton = 1;
       if (e.cancelable) e.preventDefault();
     };
-    document.ontouchstart = function(e) {
+    $.input.ontouchstart = function(e) {
       if ($.Game.running) {
         $.Game.dragStart = { 
             x: e.changedTouches[0].pageX - $.wrapper.offsetLeft, 
             y: e.changedTouches[0].pageY - $.wrapper.offsetTop,
             t: (new Date()).getTime()
         };
+        $.Game.dragEnd = $.Game.dragNow = null;
       }
     };
-    document.ontouchmove = function(e) {
+    $.input.ontouchmove = function(e) {
       if ($.Game.running) {
         $.Game.dragNow = { 
             x: e.changedTouches[0].pageX - $.wrapper.offsetLeft, 
@@ -261,7 +270,8 @@ $.Game = {
 
     this.logTime("After favicon. Before Ego constructor call.");
     
-    $.ego = new $.Ego();
+    //$.ego = new $.Ego();
+
     
     this.logTime("Before sound init.");
     
@@ -280,7 +290,7 @@ $.Game = {
       $.Game.logTime("In show title setTimeout function.");
       
       // Show the title screen.
-      $.Game.showText(1, "Astro Mine:");
+      $.Game.showText(1, "Astro Miners");
       $.Game.showText(3, "OFFLINE");
       
       $.Game.logTime("Before Game.init");
@@ -310,6 +320,28 @@ $.Game = {
     this.logTime("After show title setTimeout.");
   },
   
+  addMiners: function() {
+    for (var i=0; i<10; i++) {
+      var sprite = document.createElement('span');
+      sprite.classList.add('miner');
+      if (i > 0) {
+        sprite.classList.add('offline');
+      }
+      var minerCtx = $.Util.create2dContext(50, 50);
+      minerCtx.drawImage($.Util.renderSphere(50, 1, 'white', 0.95, 'black'), 0, 0);
+      sprite.style.backgroundImage = 'url(' + minerCtx.canvas.toDataURL("image/png") + ')';
+      $.miners.appendChild(sprite);
+      sprite.addEventListener('click', (function(miner) {
+        return function() {
+          console.log('miner ' + miner);
+          $.ego.active = false;
+          $.ego = $.Game.miners[miner];
+          $.ego.active = true;
+        }
+      })(i));
+    }
+  },
+  
   /**
    * Initialises the Game.
    * 
@@ -317,7 +349,7 @@ $.Game = {
    */
   init: function(running) {
     $.Game.logTime("ENTERing Game.init. Before ego.reset");
-    $.ego.reset();
+    //$.ego.reset();
     $.Game.logTime("After ego.reset");
 
     this.time = 0;
@@ -340,6 +372,8 @@ $.Game = {
     
     $.Game.logTime("Before Map.init");
     $.Map.init();
+    $.ego = this.miners[0];
+    $.ego.active = true;
     $.Game.logTime("After Map.init");
     
     // Tells the game loop that the game is now running. During the game over state,
@@ -676,6 +710,13 @@ $.Game = {
     if ($.Game.running) {
       $.ego.update();
     }
+    
+    for (var minerNum = 0; minerNum < 10; minerNum++) {
+      var miner = this.miners[minerNum];
+      if (miner != $.ego) {
+        miner.update();
+      }
+    }
       
     // Updates position of bullets and checks to see if they have hit anything.
     for (var bulletNum = 0; bulletNum < 20; bulletNum++) {
@@ -688,13 +729,13 @@ $.Game = {
         block = $.Map.getBlockAt(bullet.x, bullet.y);
         if ((block.type != ' ') && (block.type != '.')) {
           bullet.hit = true;
-          if (block.type == '*') {
-            // Hit an enemy.
-            $.Sound.play('kill');
-            enemy = this.getEnemy(block.col, block.row);
-            this.removeEnemy(enemy);
-            $.Map.clearBlock(block);
-          }
+//          if (block.type == '*') {
+//            // Hit an enemy.
+//            $.Sound.play('kill');
+//            enemy = this.getEnemy(block.col, block.row);
+//            this.removeEnemy(enemy);
+//            $.Map.clearBlock(block);
+//          }
         }
       }
     }
@@ -841,6 +882,15 @@ $.Game = {
         if (bullet.hit) {
           this.bullets[bulletNum] = null;
         }
+      }
+    }
+    
+    for (var minerNum = 0; minerNum < 10; minerNum++) {
+      var miner = this.miners[minerNum];
+      if (miner != $.ego) {
+        $.sctx.drawImage(miner.canvas, 
+            0, 0, miner.size, miner.size,
+            miner.x - $.ego.x - (miner.size/2), miner.y - $.ego.y - (miner.size/2), miner.size, miner.size);
       }
     }
     

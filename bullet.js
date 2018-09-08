@@ -12,35 +12,34 @@ $.Bullet = function(x, y, heading) {
   this.heading = heading;
   this.step = 10;
   this.hit = false;
-  this.size = 4;
+  this.size = 10;
+  this.move();
 };
 
 // TODO: Move this into a common base class. Ego has it as well.
 $.Bullet.prototype.findNewPos = function() {
-  var startStep = this.step * $.Game.stepFactor;
-  var currentStep = startStep;
-  var foundNewPos = false;
+  var endStep = this.step;// Math.round(this.step * $.Game.stepFactor);
+  var currentStep = 1;
+  var newXPos, newYPos;
   
-  while (!foundNewPos && (currentStep > 0)) {
-    console.log("currentStep: " + currentStep);
-    
+  while (!this.hit && (currentStep < endStep)) {
     // Attempt to move.
-    var newXPos = this.x + Math.cos(this.heading) * Math.round(currentStep);
-    var newYPos = this.y + Math.sin(this.heading) * Math.round(currentStep);
+    var testX = this.x + Math.cos(this.heading) * Math.round(currentStep);
+    var testY = this.y + Math.sin(this.heading) * Math.round(currentStep);
+    var blocked  = $.Map.circleIsBlocked(testX, testY, 1);
     
-    var blocked = $.Map.circleIsBlocked(newXPos, newYPos, this.size/2);
-    if (blocked) {
-      currentStep--;
+    if (!blocked) {
+      newXPos = testX;
+      newYPos = testY;
+      currentStep++;
     } else {
-      foundNewPos = true;
+      this.hit = true;
+//      block = $.Map.getBlockAt(testX, testY);
+//      $.Map.clearBlock(block);
     }
   }
   
-  if (currentStep != startStep) {
-    this.hit = true;
-  }
-  
-  if (foundNewPos) {
+  if (currentStep > 1) {
     return {newXPos: newXPos, newYPos: newYPos};
   } else {
     return null;
@@ -48,7 +47,7 @@ $.Bullet.prototype.findNewPos = function() {
 };
 
 /**
- *         this.bullets[bulletNum].move();Moves this Bullet based on its current heading and step size.
+ * Moves this Bullet based on its current heading and step size.
  */
 $.Bullet.prototype.move = function() {
   if (this.heading != null && !this.hit) {
@@ -87,15 +86,14 @@ $.Bullet.prototype.draw = function(ctx, offsetX, offsetY) {
   ctx.shadowColor   = 'rgba(226,88,34, 1)';
   ctx.shadowOffsetX = 0;
   ctx.shadowOffsetY = 0;
-  ctx.shadowBlur    = 10;
-  var bulletLength = this.step*5;
-  for (var i=0; i<bulletLength; i+=2) {
+  ctx.shadowBlur    = 20;
+  for (var i=1; i<20; i+=4) {
     var tempX = this.x - Math.cos(this.heading) * i;
     var tempY = this.y - Math.sin(this.heading) * i;
     $.Util.fillCircle(ctx, 
         Math.round(tempX - offsetX - (this.size/2)), 
         Math.round(tempY - offsetY - (this.size/2)), 
-        Math.round(this.size * (bulletLength-i)/bulletLength),  
+        Math.round(this.size), // * (bulletLength/*-i*/)/bulletLength),
         'rgba(226,88,34,' + (0.2 + Math.random() * 0.6) + ')');
   }
   ctx.globalCompositeOperation = "source-over";

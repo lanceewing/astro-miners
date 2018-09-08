@@ -11,7 +11,7 @@ $.Map = {
   /**
    * The currently active canvas.
    */
-  canvasNum: 1,
+  canvasNum: 0,
   
   /**
    * The 2d contexts for the two canvases.
@@ -24,7 +24,7 @@ $.Map = {
   init: function() {
     this.data = this.map.split('');
     this.canvases = [];
-    this.canvasNum = 1;
+    this.canvasNum = 0;
     this.contexts = [];
     
     for (var i=0; i<2; i++) {
@@ -34,9 +34,10 @@ $.Map = {
       this.contexts[i] = this.canvases[i].getContext('2d');
     }
     
-    this.draw(1);
+    // TODO: It seems that the visible canvas is slower to draw to??
+    this.draw(0);
     setTimeout(function() {
-      $.Map.draw(0);
+      $.Map.draw(1);
     }, 1);
   },
   
@@ -48,7 +49,7 @@ $.Map = {
    */
   map:  '########################################################################################################################################################'
       + '##########      ##   #################        ###########  ############     ##############  ########  #####     ################################ ### ###'
-      + '##########            ##############           #########     #########       ############    #######   ####     ##########        ###### # ###    ## ###'
+      + '##########0           ##############           #########     #########       ############    #######   ####     ##########        ###### # ###    ## ###'
       + '##########             ############      #      ######        ### ####          #########   ######### #####  #############        #####          #######'
       + '###########             ############    ####    ######        ###  ####          #########  ######### ####################        #####          #######'
       + '############    *        ############    ####   ######       ############        ###############      ###################         #####          #######'
@@ -57,32 +58,32 @@ $.Map = {
       + '##############   #####      ####   ######################    ########                   #####        ############ ####    ########  ####    ##      ####'
       + '##############   #######    ###     ##### ###############          ##                    ####  ###   ######        ###    #########  ##    ####      ###'
       + '#############     ######    ##       ###   ######     ####         ###      ##            ########    #####       ####     ########       ######      ##'
-      + '#*  #########     ####      ##       ##     #####     ####          ##   #####             ######      ####    #######     #########     ##########    #'
+      + '#3  #########     ####1     ##       ##     #####     ####          ##   #####             ######      ####    #######     #########     ##########    #'
       + '#    ########       ##      ###      ##     ####     ####               ######       #      ####         #     #######      #########   ############   #'
       + '##   ## ####       ###      ###      ###   ####      ####       ###    ####          ##            #           #######      ##########  ###########    #'
-      + '##                 #####    ####     ###  ###       #####       ####  ####      ##                ###           #####       #########    ########      #'
+      + '##                 #####   5####     ###  ###       #####       ####  ####      ##                ###           #####       #########    ########      #'
       + '#        ###       ##############     ##   ##       ########     #########     ####       #      ####            ####       ######         ######     ##'
-      + '##  #######       #################                ##########     ########     ####       #  #   ###             ###       #####           ######    ###'
+      + '##4 #######2      #################                ##########     ########     ####       #  #   ###             ###       #####           ######    ###'
       + '#########        ##################                ##########     #######      ####   #      #         #######   ###       ####           ########  ####'
       + '#######         ####################               ##########     #######      ###   ###              ########   ###        ####         ###############'
       + '######         #########################          #########       ####### ##  ###   ####             #########   ####     #########      ###    ########'
       + '#####         ##########################          ########        ##############    ####         #########  ##  ######    ##########     ##      ###   #'
-      + '####          ####  ##################             #######   #   ##############     ####        ##########      ####### ############     ##            #'
+      + '####    7     ####  ##################             #######   #   ##############     ####        ##########      ####### ############     ##            #'
       + '###    ##      ##    ############  ###       #      ######  ###  ############       #####      ####### ###     ######     ###########   ####           #'
       + '##     ###     ##     ###########  ####      ##     ######  ###   ####  ####         ######    ######   ##    ######      ##################       ## ##'
-      + '##      ###    ##      ###################   ###   #######  #### #####  ####         #######    #####    #    #####       #######   ########    ########'
+      + '##      ###   6##      ###################   ###   #######  #### #####  ####         #######    #####    #    #####       #######   ########    ########'
       + '##       ########      ###################    ##   ######    #########   ###         ########      #          #####      #######    ######### ##########'
       + '##   #    #######      ###   #############     ####  ####    #########   ###         #########               ###################    ####################'
       + '##  ###    ######     ###     ############     ####  ####    ########## #####       #############            ###################   #####################'
       + '#  ####     ####     ####     ###########   ##############   ###############      ################           ###     ####  #####  ### ##########  ######'
-      + '#  ####      ###    #####     ########    ####################### ##########     ##################          ##             ##### ##   ########    #####'
+      + '#8 ####      ###    #####     ########    ####################### ##########     ##################          ##             ##### ##   ########    #####'
       + '#######      ###    #####    #######     #######################   ########     ###################                         ########    ########  ######'
       + '#######       ###  #####     ####       #################### ##     ######      ###################                        ########      ###############'
       + '######        ##    #                  ####################         ######   #####################        #                #######        ##############'
       + '#####                                 ######################        ######  #################  ###       ###   #           ######          #############'
       + '#####                                #############   ########      ####### ##################   #   #     ##  ###           ####            ######### ##'
       + '#  ##                 #              ############    ########    #####################   ####      ###    ##   #           #####            ########   #'
-      + '#  ###  #####        ###               #########    #### #############################    ##       ####                    ####             #######    #'
+      + '#  ### 9#####        ###               #########    #### #############################    ##       ####                    ####             #######    #'
       + '#  ##########    #  ##### ###           ####   ##   ##    ######### ##################              ####             #     ####        ##   #####      #'
       + '##  #########   ############                   ###        ########   ################                ####           ###     ###              ##        #'
       + '##     ####### #############       ##         ####     ###  ######    ##############                  ###           ###        #####                   #'
@@ -208,6 +209,30 @@ $.Map = {
   /**
    * 
    */
+  getCircleHitBlock: function(x, y, r) {
+    var hitBlocks = [];
+    var bottomRightBlock = $.Map.getBlockAt(x + r, y + r);
+    var topRightBlock = $.Map.getBlockAt(x + r, y - r);
+    var topLeftBlock = $.Map.getBlockAt(x - r, y - r);
+    var bottomLeftBlock = $.Map.getBlockAt(x - r, y + r);
+    if ((bottomRightBlock.type == '#') && (this.blockCircleColliding(x, y, r, bottomRightBlock))) {
+      hitBlocks.push(bottomRightBlock);
+    }
+    if ((topRightBlock.type == '#') && (this.blockCircleColliding(x, y, r, topRightBlock))) {
+      hitBlocks.push(topRightBlock);
+    }
+    if ((topLeftBlock.type == '#') && (this.blockCircleColliding(x, y, r, topLeftBlock))) {
+      hitBlocks.push(topLeftBlock);
+    }
+    if ((bottomLeftBlock.type == '#') && (this.blockCircleColliding(x, y, r, bottomLeftBlock))) {
+      hitBlocks.push(bottomLeftBlock);
+    }
+    return hitBlocks;
+  },
+  
+  /**
+   * 
+   */
   blockCircleColliding: function(circleX, circleY, radius, block) {
     var rectW = $.Constants.CELL_WIDTH;
     var rectH = $.Constants.CELL_WIDTH;
@@ -284,8 +309,47 @@ $.Map = {
     ctx.clearRect(block.col * $.Constants.CELL_WIDTH, (block.row + 104) * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
     ctx.clearRect((block.col + 152) * $.Constants.CELL_WIDTH, block.row * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
     ctx.clearRect((block.col + 152) * $.Constants.CELL_WIDTH, (block.row + 104) * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
+  
+//    ctx.fillStyle = 'black';
+//    ctx.beginPath();
+//    ctx.rect(block.col * $.Constants.CELL_WIDTH, block.row * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
+//    ctx.closePath();
+//    ctx.fill();
+//    ctx.beginPath();
+//    ctx.rect(block.col * $.Constants.CELL_WIDTH, (block.row + 104) * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
+//    ctx.closePath();
+//    ctx.fill();
+//    ctx.beginPath();
+//    ctx.rect((block.col + 152) * $.Constants.CELL_WIDTH, block.row * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
+//    ctx.closePath();
+//    ctx.fill();
+//    ctx.beginPath();
+//    ctx.rect((block.col + 152) * $.Constants.CELL_WIDTH, (block.row + 104) * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
+//    ctx.closePath();
+//    ctx.fill();
+//    
+//    ctx = this.contexts[1];
+//    ctx.fillStyle = 'black';
+//    ctx.beginPath();
+//    ctx.rect(block.col * $.Constants.CELL_WIDTH, block.row * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
+//    ctx.closePath();
+//    ctx.fill();
+//    ctx.beginPath();
+//    ctx.rect(block.col * $.Constants.CELL_WIDTH, (block.row + 104) * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
+//    ctx.closePath();
+//    ctx.fill();
+//    ctx.beginPath();
+//    ctx.rect((block.col + 152) * $.Constants.CELL_WIDTH, block.row * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
+//    ctx.closePath();
+//    ctx.fill();
+//    ctx.beginPath();
+//    ctx.rect((block.col + 152) * $.Constants.CELL_WIDTH, (block.row + 104) * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
+//    ctx.closePath();
+//    ctx.fill();
+    
     block.type = '.';
     this.putBlock(block);
+    this.updateSideBlocks(block,false);
   },
   
   /**
@@ -296,6 +360,92 @@ $.Map = {
     this.canvasNum = (this.canvasNum + 1) % 2;
   },
   
+  updateSideBlocks: function(block, debug) {
+    for (var c = 0; c<2; c++) {
+      var ctx = this.contexts[c];
+      for (var col = block.col; col <= (block.col + 152); col += 152) {
+        for (var row = block.row; row <= (block.row + 104); row += 104) {
+          this.drawBlock(ctx, (col == 0? 151 : col - 1), row, (debug? 'blue' : false));
+          this.drawBlock(ctx, col, (row == 0? 103 : row - 1), (debug? 'green' : false));
+          this.drawBlock(ctx, (col + 1) % 304, row, (debug? 'red' : false));
+          this.drawBlock(ctx, col, ((row + 1) % 208), (debug? 'magenta' : false));
+        }
+      }
+    }
+  },
+  
+  drawBlock: function(ctx, xx, yy, debug) {
+    var dataX = (xx % 152);
+    var dataY = (yy % 104);
+    var block = this.data[dataY * 152 + dataX];
+    if (debug) {
+      console.log('debug colour: ' + debug + ", block: " + block + ", yy: " + yy);
+      ctx.strokeStyle = debug;
+      ctx.beginPath();
+      ctx.rect(xx * $.Constants.CELL_WIDTH, yy * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH - 1, $.Constants.CELL_WIDTH - 1);
+      ctx.closePath();
+      ctx.stroke();
+    }
+    if (block == '#') {
+      ctx.fillStyle = '#22160B';
+      ctx.strokeStyle = '#22160B';
+      ctx.beginPath();
+      ctx.rect(xx * $.Constants.CELL_WIDTH, yy * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH - 1, $.Constants.CELL_WIDTH - 1);
+      ctx.closePath();
+      ctx.fill();
+      if (!debug) {
+        ctx.stroke();
+      }
+      
+      ctx.strokeStyle = 'rgba(100, 100, 100, 1)';
+
+      if (this.data[(((dataY + 104) - 1) % 104) * 152 + dataX] != '#') {
+        ctx.beginPath();
+        ctx.moveTo(xx * $.Constants.CELL_WIDTH, yy * $.Constants.CELL_WIDTH + 1);
+        ctx.lineTo((xx * $.Constants.CELL_WIDTH + $.Constants.CELL_WIDTH), yy * $.Constants.CELL_WIDTH + 1);
+        ctx.closePath();
+        ctx.stroke();
+      }
+      if (this.data[dataY * 152 + ((dataX + 1) % 152)] != '#') {
+        ctx.beginPath();
+        ctx.moveTo((xx * $.Constants.CELL_WIDTH + $.Constants.CELL_WIDTH) - 1, yy * $.Constants.CELL_WIDTH);
+        ctx.lineTo((xx * $.Constants.CELL_WIDTH + $.Constants.CELL_WIDTH) - 1, (yy * $.Constants.CELL_WIDTH + $.Constants.CELL_WIDTH) - 1);
+        ctx.closePath();
+        ctx.stroke();
+      }
+      if (this.data[((dataY + 1) % 104) * 152 + dataX] != '#') {
+        ctx.beginPath();
+        ctx.moveTo((xx * $.Constants.CELL_WIDTH + $.Constants.CELL_WIDTH) - 1, (yy * $.Constants.CELL_WIDTH + $.Constants.CELL_WIDTH) - 1);
+        ctx.lineTo(xx * $.Constants.CELL_WIDTH, (yy * $.Constants.CELL_WIDTH + $.Constants.CELL_WIDTH) - 1);
+        ctx.closePath();
+        ctx.stroke();
+      }
+      if (this.data[dataY * 152 + (((dataX + 152) - 1) % 152)] != '#') {
+        ctx.beginPath();
+        ctx.moveTo(xx * $.Constants.CELL_WIDTH + 1, (yy * $.Constants.CELL_WIDTH + $.Constants.CELL_WIDTH));
+        ctx.lineTo(xx * $.Constants.CELL_WIDTH + 1, yy * $.Constants.CELL_WIDTH);
+        ctx.closePath();
+        ctx.stroke();
+      }
+    } else if (block == '*') {
+      var enemy = $.Game.getEnemy(dataX, dataY);
+      if (!enemy) {
+        enemy = new $.Enemy(dataX, dataY);
+        $.Game.addEnemy(enemy);
+      }
+      enemy.draw(ctx, xx, yy);
+    } else if ((block >= '0') && (block <= '9')) {
+      var minerNum = parseInt(block);
+      if (!$.Game.miners[minerNum]) {
+        var miner = new $.Ego();
+        miner.lastX = miner.x = (xx % 152) * $.Constants.CELL_WIDTH + ($.Constants.CELL_WIDTH / 2);
+        miner.lastY = miner.y = (yy % 104) * $.Constants.CELL_WIDTH + ($.Constants.CELL_WIDTH / 2);
+        console.log("adding miner x: " + miner.x + ", y: " + miner.y);
+        $.Game.miners[minerNum] = miner;
+      }
+    }
+  },
+  
   /**
    * Uses the map data array to render the Map to the given canvas.
    * 
@@ -303,77 +453,10 @@ $.Map = {
    */
   draw: function(canvasNum) {
     var ctx = this.contexts[canvasNum];
-    var colour = (canvasNum == 0? '#000000' : 'rgba(0,0,0,0.9)');
     var xx, yy;
-    //ctx.lineJoin = 'round';
     for (xx = 0; xx < 304; xx++) {
       for (yy = 0; yy < 208; yy++) {
-        var dataX = (xx % 152);
-        var dataY = (yy % 104);
-        var block = this.data[dataY * 152 + dataX];
-
-        if (block == '#') {
-          ctx.fillStyle = '#22160B';
-          ctx.strokeStyle = '#22160B';
-          ctx.beginPath();
-          ctx.rect(xx * $.Constants.CELL_WIDTH, yy * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-          
-//          var lingrad = ctx.createLinearGradient(0,0,15,15);
-//          lingrad.addColorStop(0.5, '#00FF00');
-//          lingrad.addColorStop(1, '#fff');
-          
-          ctx.strokeStyle = 'rgba(100, 100, 100, 1)';
-//          ctx.shadowColor   = 'rgba(255, 255, 255, 1)';
-//          ctx.shadowOffsetX = 0;
-//          ctx.shadowOffsetY = 0;
-//          ctx.shadowBlur    = 20;
-          //ctx.lineWidth = 15;
-          
-          if (this.data[(((dataY + 104) - 1) % 104) * 152 + dataX] != '#') {
-            ctx.beginPath();
-            ctx.moveTo(xx * $.Constants.CELL_WIDTH, yy * $.Constants.CELL_WIDTH);
-            ctx.lineTo(xx * $.Constants.CELL_WIDTH + $.Constants.CELL_WIDTH, yy * $.Constants.CELL_WIDTH);
-            ctx.closePath();
-            ctx.stroke();
-          }
-          if (this.data[dataY * 152 + ((dataX + 1) % 152)] != '#') {
-            ctx.beginPath();
-            ctx.moveTo(xx * $.Constants.CELL_WIDTH + $.Constants.CELL_WIDTH, yy * $.Constants.CELL_WIDTH);
-            ctx.lineTo(xx * $.Constants.CELL_WIDTH + $.Constants.CELL_WIDTH, yy * $.Constants.CELL_WIDTH + $.Constants.CELL_WIDTH);
-            ctx.closePath();
-            ctx.stroke();
-          }
-          if (this.data[((dataY + 1) % 104) * 152 + dataX] != '#') {
-            ctx.beginPath();
-            ctx.moveTo(xx * $.Constants.CELL_WIDTH + $.Constants.CELL_WIDTH, yy * $.Constants.CELL_WIDTH + $.Constants.CELL_WIDTH);
-            ctx.lineTo(xx * $.Constants.CELL_WIDTH, yy * $.Constants.CELL_WIDTH + $.Constants.CELL_WIDTH);
-            ctx.closePath();
-            ctx.stroke();
-          }
-          if (this.data[dataY * 152 + (((dataX + 152) - 1) % 152)] != '#') {
-            ctx.beginPath();
-            ctx.moveTo(xx * $.Constants.CELL_WIDTH, yy * $.Constants.CELL_WIDTH + $.Constants.CELL_WIDTH);
-            ctx.lineTo(xx * $.Constants.CELL_WIDTH, yy * $.Constants.CELL_WIDTH);
-            ctx.closePath();
-            ctx.stroke();
-          }
-          
-//         ctx.shadowColor = 'rgba(0,0,0,0)';
-//         ctx.shadowBlur = 0;
-//         ctx.shadowOffsetX = 0;
-//         ctx.shadowOffsetY = 0;
-          
-        } else if (block == '*') {
-          var enemy = $.Game.getEnemy(dataX, dataY);
-          if (!enemy) {
-            enemy = new $.Enemy(dataX, dataY);
-            $.Game.addEnemy(enemy);
-          }
-          enemy.draw(ctx, xx, yy);
-        }
+        this.drawBlock(ctx, xx, yy);
       }
     }
   }
