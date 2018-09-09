@@ -93,7 +93,7 @@ $.Bullet.prototype.draw = function(ctx, offsetX, offsetY) {
     $.Util.fillCircle(ctx, 
         Math.round(tempX - offsetX - (this.size/2)), 
         Math.round(tempY - offsetY - (this.size/2)), 
-        Math.round(this.size), // * (bulletLength/*-i*/)/bulletLength),
+        Math.round(this.size),
         'rgba(226,88,34,' + (0.2 + Math.random() * 0.6) + ')');
   }
   ctx.globalCompositeOperation = "source-over";

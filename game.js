@@ -220,7 +220,7 @@ $.Game = {
             x: e.pageX - $.wrapper.offsetLeft, 
             y: e.pageY - $.wrapper.offsetTop,
             t: (new Date()).getTime()
-        }
+        };
       }
     };
     $.input.ontouchend = function(e) {
@@ -326,6 +326,8 @@ $.Game = {
       sprite.classList.add('miner');
       if (i > 0) {
         sprite.classList.add('offline');
+      } else {
+        sprite.classList.add('active');
       }
       var minerCtx = $.Util.create2dContext(50, 50);
       minerCtx.drawImage($.Util.renderSphere(50, 1, 'white', 0.95, 'black'), 0, 0);
@@ -334,11 +336,22 @@ $.Game = {
       sprite.addEventListener('click', (function(miner) {
         return function() {
           console.log('miner ' + miner);
-          $.ego.active = false;
-          $.ego = $.Game.miners[miner];
-          $.ego.active = true;
-        }
+          var minerObj = $.Game.miners[miner];
+          if (minerObj.online) {
+            var currentActive = document.getElementsByClassName('active');
+            if (currentActive && currentActive.length > 0) {
+              currentActive[0].classList.remove('active');
+            }
+            $.ego.active = false;
+            $.ego = minerObj;
+            $.ego.active = true;
+            this.classList.add('active');
+          }
+        };
       })(i));
+      // Create the miner object and store reference to the miner button.
+      $.Game.miners[i] = new $.Ego();
+      $.Game.miners[i].button = sprite;
     }
   },
   
@@ -374,6 +387,7 @@ $.Game = {
     $.Map.init();
     $.ego = this.miners[0];
     $.ego.active = true;
+    $.ego.online = true;
     $.Game.logTime("After Map.init");
     
     // Tells the game loop that the game is now running. During the game over state,
@@ -711,6 +725,7 @@ $.Game = {
       $.ego.update();
     }
     
+    // Updates the other miners not being controlled by the player.
     for (var minerNum = 0; minerNum < 10; minerNum++) {
       var miner = this.miners[minerNum];
       if (miner != $.ego) {
@@ -848,8 +863,7 @@ $.Game = {
     // sizes. This allows us to then use this diagonal as the width of the rendered portion
     // of the background, which is the minimum size we need to support a clean rotation (i.e.
     // with no white bits showing).
-    //var size = Math.max($.Constants.SCREEN_HEIGHT, $.Constants.SCREEN_WIDTH);
-    var diag = 1000; //~~(Math.sqrt(2 * (size * size)));
+    var diag = 1000;
     
     // Movement in different directions is controlled solely through a translation on this drawImage call.
     $.sctx.drawImage($.Map.getCanvas(),
@@ -867,7 +881,6 @@ $.Game = {
 
     if ($.Game.running) {
       $.sctx.save();
-      //$.sctx.rotate(((this.rotateAngle) * Math.PI / 180));
       $.ego.draw();
       $.sctx.restore();
     }
@@ -885,6 +898,7 @@ $.Game = {
       }
     }
     
+    // Renders the miners, all except for Ego
     for (var minerNum = 0; minerNum < 10; minerNum++) {
       var miner = this.miners[minerNum];
       if (miner != $.ego) {

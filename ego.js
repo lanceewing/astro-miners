@@ -38,7 +38,6 @@ $.Ego = function() {
   this.size = $.Constants.CELL_WIDTH - 9;
   this.texture = 0.95;
   this.canvas = this.buildCanvas();
-  this.active = false;
 };
 
 /**
@@ -61,6 +60,8 @@ $.Ego.prototype.makeFlame = function(pos) {
  * Resets Ego's state back to the game start state.
  */
 $.Ego.prototype.reset = function() {
+  this.active = false;            // Is it being controlled by player?
+  this.online = false;            // Is it currently online?
   this.lastX = this.x = 357;
   this.lastY = this.y = 63;
   this.power = 0;
@@ -91,38 +92,6 @@ $.Ego.prototype.buildCanvas = function() {
   
   return ctx.canvas;
 };
-
-///**
-// * Adjusts the power property by the given amount, which could be either
-// * negative or positive. It is invoked whenever Ego's power is set at reset, 
-// * and also when Ego is hit by the Glitch.
-// * 
-// * @param {number} amount The amount to adjust the power by.
-// */
-//$.Ego.prototype.powerUp = function(amount) {
-//  this.power += amount;
-//  
-//  if (this.power < 0) {
-//    // If the power goes below 0, it is the end of the game.
-//    this.power = 0;
-//    $.Game.gameover();
-//  }
-//  
-//  // Removing the style at this point ensures that we clear any previous 
-//  // transition. We don't what positive changes to use a transition since 
-//  // the change does't render while the absorb key is pressed down.
-//  $.power.removeAttribute('style');
-//  
-//  if (amount < 0) {
-//    // If the change was negative, then we apply a CSS transition since the
-//    // change for a hit is quite larger. This stops the power bar from making
-//    // quite jarring jumps in value. The transition makes this change smoother.
-//    $.power.style.transition = 'width 0.5s';
-//  }
-//  
-//  // Adjust the size of the power bar on screen to represent the new power value.
-//  $.power.style.width = this.power + 'px';
-//};
 
 /**
  * Draws the main player.
@@ -238,83 +207,57 @@ $.Ego.prototype.findNewPos = function() {
   }
 };
 
-///**
-// * 
-// */
-//$.Ego.prototype.findNewPos = function() {
-//  var startStep = this.step * $.Game.stepFactor;
-//  var currentStep = startStep;true
-//  var foundNewPos = false;
-//  var prevHitBlocks = [];
-//  
-//  while (!foundNewPos && (currentStep > 0)) {
-//    // Attempt to move.
-//    var newXPos = this.x + Math.cos(this.heading) * Math.round(currentStep);
-//    var newYPos = this.y + Math.sin(this.heading) * Math.round(currentStep);
-//    
-//    //var blocked = $.Map.circleIsBlocked(newXPos, newYPos, this.size/2);
-//    var hitBlocks = $.Map.getCircleHitBlock(newXPos, newYPos, this.size/2);
-//    if (hitBlocks.length > 0) {
-//      currentStep--;
-//    } else {
-//      foundNewPos = true;
-//      if (prevHitBlocks.length > 0) {
-//        for (var i=0; i<prevHitBlocks.length; i++) {
-//          $.Map.clearBlock(prevHitBlocks[i]);
-//        }
-//      }
-//    }
-//    prevHitBlocks = hitBlocks;
-//  }
-//  
-//  if (currentStep != startStep) {
-//    this.heading = null;
-//  }
-//  
-//  if (foundNewPos) {
-//    return {newXPos: newXPos, newYPos: newYPos};
-//  } else {
-//    return null;
-//  }
-//};
-
 /**
  * Updates Ego for the current frame. 
  */
 $.Ego.prototype.update = function() {
-  if ($.Game.dragEnd && $.Game.dragStart) {
-    $.Game.mouseButton = 0;
-
-    // The player is always in the middle of the window, so we calculate the heading from that point.
-    var playerScreenX = (~~($.Constants.WRAP_WIDTH / 2));
-    var playerScreenY = (~~($.Constants.WRAP_HEIGHT / 2));
-    var clickHeading = Math.atan2(playerScreenY - $.Game.dragEnd.y, playerScreenX - $.Game.dragEnd.x) + ((($.Game.rotateAngle + 180) % 360) * Math.PI / 180);
-    var dragDist = $.Util.dist($.Game.dragEnd, $.Game.dragStart);
-    var dragDuration = $.Game.dragEnd.t - $.Game.dragStart.t;
-    
-    $.Game.dragEnd = $.Game.dragStart = $.Game.dragNow = null;
-    
-    if (this.heading == null) this.heading = clickHeading;
-    
-    if ((dragDist > 5) && (dragDuration > 200)) {
-      // If the drag distance and duration are beyond a threshold indicating there 
-      // was a drag (and not just a click in place), then ego will move.
-      //if (this.heading == null) this.heading = clickHeading;
+  if (this.active) {
+    // The player is the only active miner, so this must be the player.
+    if ($.Game.dragEnd && $.Game.dragStart) {
+      $.Game.mouseButton = 0;
+  
+      // The player is always in the middle of the window, so we calculate the heading from that point.
+      var playerScreenX = (~~($.Constants.WRAP_WIDTH / 2));
+      var playerScreenY = (~~($.Constants.WRAP_HEIGHT / 2));
+      var clickHeading = Math.atan2(playerScreenY - $.Game.dragEnd.y, playerScreenX - $.Game.dragEnd.x) + ((($.Game.rotateAngle + 180) % 360) * Math.PI / 180);
+      var dragDist = $.Util.dist($.Game.dragEnd, $.Game.dragStart);
+      var dragDuration = $.Game.dragEnd.t - $.Game.dragStart.t;
       
-      this.digging = true;
+      $.Game.dragEnd = $.Game.dragStart = $.Game.dragNow = null;
       
-    } else {
-      // The player can only fire 5 bullets at once.
-//      for (var bulletNum = 0; bulletNum < 5; bulletNum++) {
-//        if ($.Game.bullets[bulletNum] == null) {
-//          $.Game.bullets[bulletNum] = new $.Bullet(this.x, this.y, clickHeading);
-//          $.Sound.play('bomb');
-//          break;
-//        }
-//      }
-      // TODO: Change bullet firing to movement without mining.
+      if (this.heading == null) this.heading = clickHeading;
       
-      this.digging = false;
+      if ((dragDist > 5) && (dragDuration > 200)) {
+        // If the drag distance and duration are beyond a threshold indicating there 
+        // was a drag (and not just a click in place), then ego will move.
+        //if (this.heading == null) this.heading = clickHeading;
+        
+        this.digging = true;
+        
+      } else {
+        // The player can only fire 5 bullets at once.
+  //      for (var bulletNum = 0; bulletNum < 5; bulletNum++) {
+  //        if ($.Game.bullets[bulletNum] == null) {
+  //          $.Game.bullets[bulletNum] = new $.Bullet(this.x, this.y, clickHeading);
+  //          $.Sound.play('bomb');
+  //          break;
+  //        }
+  //      }
+        // TODO: Change bullet firing to movement without mining.
+        
+        this.digging = false;
+      }
+    }
+  } else {
+    // Otherwise it is one of the miners not currently being controller, i.e. not active (but 
+    // could still be online). The only thing to check for is collision with the active player,
+    // since that would bring this miner online.
+    if (!this.online && $.Game.running) {
+      var distToEgo = $.Util.dist($.ego, this);
+      if (distToEgo <= (this.size+2)) {
+        this.online = true;
+        this.button.classList.remove('offline');
+      }
     }
   }
 

@@ -436,12 +436,16 @@ $.Map = {
       enemy.draw(ctx, xx, yy);
     } else if ((block >= '0') && (block <= '9')) {
       var minerNum = parseInt(block);
-      if (!$.Game.miners[minerNum]) {
-        var miner = new $.Ego();
+      if ((xx < 152) && (yy < 104)) {
+        // Reset the miner's initial position.
+        miner = $.Game.miners[minerNum];
+        if (minerNum > 0) {
+          // We do not reset the main player, as that makes it inactive.
+          miner.reset();
+        }
         miner.lastX = miner.x = (xx % 152) * $.Constants.CELL_WIDTH + ($.Constants.CELL_WIDTH / 2);
         miner.lastY = miner.y = (yy % 104) * $.Constants.CELL_WIDTH + ($.Constants.CELL_WIDTH / 2);
         console.log("adding miner x: " + miner.x + ", y: " + miner.y);
-        $.Game.miners[minerNum] = miner;
       }
     }
   },
