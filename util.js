@@ -3,8 +3,6 @@
  */
 $.Util = {};
 
-//$.Util._random = 481731;
-
 /**
  * Linear congruential generator algorithm with a fixed seed. Gives the appearance
  * of being random but always generates the numbers in the same sequence. This has
@@ -15,7 +13,7 @@ $.Util.random = function(seed) {
   return function(n) {
     _random = (_random * 1664525 + 1013904223) & 0xFFFFFFFF;
     return (_random % n);
-  }
+  };
 };
 
 /**
@@ -56,103 +54,6 @@ $.Util.create2dContext = function(w, h) {
   canvas.width = w;
   canvas.height = h || w;
   return (canvas.getContext('2d'));
-};
-
-/**
- * Draws a person background sprite image. This includes the four different directions,
- * and three different cycles of moving in that direction. The parameters allow different
- * size persons to be drawn, of different clours, and with different features.
- */
-$.Util.renderPerson = function(w, h, direction, c, face, clothes, hat, pack) {
-  var ctx = $.Util.create2dContext(w, h + (w / 10));
-
-  var ballSize = (w / 5);
-  ctx.lineWidth = 4;
-  ctx.lineJoin = 'round';
-  
-  // Hat ball on top
-  if (hat) {
-    ctx.fillStyle = hat;
-    $.Util.fillCircle(ctx, (w / 2) - (ballSize / 2), 0, ballSize, 2, true);
-  }
-  
-  // Head & hat
-  var headSize = w - (w / 5);
-  var headStart = ballSize - (ballSize / 5);
-  ctx.fillStyle = hat;
-  $.Util.fillCircle(ctx, 0 + ((w - headSize) / 2), headStart, headSize, 2, true);
-  ctx.fillStyle = face;
-  $.Util.fillCircle(ctx, 0 + ((w - headSize) / 2), headStart, headSize, hat? 1 : 2, true);
-  
-  // Neck
-  var bodyStart = headStart + headSize;
-  var packStart = bodyStart + (w / 10);
-  
-  // Backpack
-  var packWidth = (w / 2.75);
-  if (pack) {
-    ctx.fillStyle = pack;
-    ctx.beginPath();
-    if (direction != 0) {
-      ctx.rect(w / 2, packStart, -packWidth, headSize);
-    }
-    if (direction != 1) {
-      ctx.rect(w / 2, packStart, packWidth, headSize);
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  }
-  
-  // Body
-  var bodyBottom = bodyStart + w + (w / 1.5);
-  var shoulderWidth = w / 6;
-  ctx.fillStyle = clothes;
-  ctx.beginPath();
-  ctx.moveTo(w / 2, bodyStart);
-  ctx.lineTo((w / 2) - shoulderWidth, bodyStart);
-  if (direction != 1) {
-    // Draw left point
-    ctx.lineTo(3, bodyBottom);
-  }
-  ctx.lineTo((w / 2) - shoulderWidth, bodyBottom);
-  ctx.lineTo((w / 2) + shoulderWidth, bodyBottom);
-  if (direction != 0) {
-    // Draw right point
-    ctx.lineTo(w - 3, bodyBottom);
-  }
-  ctx.lineTo((w / 2) + shoulderWidth, bodyStart);
-  ctx.lineTo(w / 2, bodyStart);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-  
-  if (pack) {
-    if (direction == 2) {
-      ctx.fillStyle = 'red';
-      ctx.beginPath();
-      ctx.rect((w / 2) - packWidth, packStart, packWidth * 2, headSize);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-    }
-  }
-  
-  // Legs
-  var legLength = h - bodyBottom;
-  var legFactors = [1, 1, 0.5];
-  var leftFactor = legFactors[c];
-  var rightFactor = legFactors[(c + 1) % 3];
-  
-  ctx.beginPath();
-  ctx.moveTo((w / 2) - shoulderWidth, bodyBottom);
-  ctx.lineTo((w / 2) - shoulderWidth, bodyBottom + legLength * leftFactor);
-  ctx.moveTo((w / 2) + shoulderWidth, bodyBottom);
-  ctx.lineTo((w / 2) + shoulderWidth, bodyBottom + legLength * rightFactor);
-  ctx.closePath();
-  ctx.stroke();
-  
-  return ctx.canvas;
 };
 
 /**
@@ -197,24 +98,6 @@ $.Util.renderSphere = function(size, direction, colour, texture, eye, sclera) {
     }
     ctx.putImageData(imgData,0,0);
   }
-  
-//  var eyeFactor = size / 50;
-//  
-//  // Draw left eye.
-//  if ((direction == 4) || (direction == 1)) {
-//    ctx.fillStyle=(sclera || "orange");
-//    $.Util.fillCircle(ctx, 8 * eyeFactor, 12 * eyeFactor, 13 * eyeFactor);
-//    ctx.fillStyle=(eye || colour);
-//    $.Util.fillCircle(ctx, 10 * eyeFactor, 14 * eyeFactor, 9 * eyeFactor);
-//  }
-//  
-//  // Draw right eye.
-//  if ((direction == 4) || (direction == 2)) {
-//    ctx.fillStyle=(sclera || "orange");
-//    $.Util.fillCircle(ctx, 29 * eyeFactor, 12 * eyeFactor, 13 * eyeFactor);
-//    ctx.fillStyle=(eye || colour);
-//    $.Util.fillCircle(ctx, 31 * eyeFactor, 14 * eyeFactor, 9 * eyeFactor);
-//  }
   
   return ctx.canvas;
 };

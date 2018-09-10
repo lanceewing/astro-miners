@@ -33,11 +33,21 @@
  * 
  * @constructor
  */
-$.Ego = function() {
+$.Ego = function(minerNum) {
+  this.minerNum = minerNum;
   this.reset();
   this.size = $.Constants.CELL_WIDTH - 9;
   this.texture = 0.95;
   this.canvas = this.buildCanvas();
+};
+
+/**
+ */
+$.Ego.prototype.activate = function() {
+  this.active = true;
+  this.online = true;
+  this.button.classList.remove('offline');
+  this.button.classList.add('active');
 };
 
 /**
@@ -49,7 +59,7 @@ $.Ego.prototype.makeFlame = function(pos) {
     this.location = {x: pos.x, y: pos.y};
   }
   else {
-    this.location = {x: 357, y: 63};
+    this.location = {x: this.x, y: this.y};
   }
   this.radius = ((($.Constants.CELL_WIDTH - 9) * Math.random()) / 2) + 2;
   this.life = 20+Math.random()*10;
@@ -62,18 +72,17 @@ $.Ego.prototype.makeFlame = function(pos) {
 $.Ego.prototype.reset = function() {
   this.active = false;            // Is it being controlled by player?
   this.online = false;            // Is it currently online?
-  this.lastX = this.x = 357;
-  this.lastY = this.y = 63;
-  this.power = 0;
-  this.health = 0;
-  this.direction = 0;
-  this.facing = 3;
   this.heading = 0;
   this.step = 10;
   this.hit = false;
   this.digging = false;
   this.wallHit = false;
   this.flame = [];
+};
+
+$.Ego.prototype.setPosition = function(x, y) {
+  this.lastX = this.x = x;
+  this.lastY = this.y = y;
   for (var i = 0; i < 100; i++) {
     this.flame.push(new this.makeFlame());
   }
@@ -83,14 +92,56 @@ $.Ego.prototype.reset = function() {
  * Builds the background image canvas for the Ego.
  */
 $.Ego.prototype.buildCanvas = function() {
-  // Create a single canvas to render the sprite sheet for the four directions.
-  var ctx = $.Util.create2dContext(this.size * 4, this.size);
+  var ctx = $.Util.create2dContext(this.size, this.size);
+  ctx.drawImage($.Util.renderSphere(this.size, 1, 'white', this.texture, 'black'), 0, 0);
+  return ctx.canvas;
+};
+
+$.Ego.prototype.drawFlame = function() {
+  $.sctx.globalCompositeOperation = "lighter";
   
-  for (var f = 0; f < 4; f++) {
-    ctx.drawImage($.Util.renderSphere(this.size, f + 1, 'white', this.texture, 'black'), f * this.size, 0);
+  var newFlames = [];
+  
+  // Store flames that need to be recreated.
+  for (var i = 0; i < this.flame.length; i++) {
+    var p = this.flame[i];
+    p.remainingLife -= $.Game.stepFactor;
+    p.radius -= $.Game.stepFactor;
+
+    // Store flames that need to be recreated.
+    if ((p.remainingLife < 0) || (p.radius < 0)) {
+      newFlames.push(i);
+    }
   }
   
-  return ctx.canvas;
+  // Calculate dist moved, then divide per flame.
+  var flamePos = {x: this.lastX, y: this.lastY};
+  var flameDist = Math.round($.Util.dist(this, flamePos)) / newFlames.length;
+  for (var i=0; i < newFlames.length; i++) {
+    flamePos.x += Math.cos(this.heading) * flameDist;
+    flamePos.y += Math.sin(this.heading) * flameDist;
+    this.flame[newFlames[i]] = new this.makeFlame(flamePos);
+  }
+  
+  // Now render the updated flames.
+  for (var i = 0; i < this.flame.length; i++) {
+    var p = this.flame[i];
+    p.opacity = Math.round(p.remainingLife/p.life*100)/100;
+    var tempX = p.location.x + Math.cos(this.heading);
+    var tempY = p.location.y + Math.sin(this.heading);
+    
+    $.Util.fillCircle(
+        $.sctx, 
+        Math.round(tempX - $.ego.x - p.radius - 1),
+        Math.round(tempY - $.ego.y - p.radius - 1), 
+        Math.round(p.radius * 2),  
+        'rgba(226, 88, 34,' + p.opacity + ')');
+
+    p.location.x -= p.speed.x;
+    p.location.y -= p.speed.y;
+  }
+
+  $.sctx.globalCompositeOperation = "source-over";  
 };
 
 /**
@@ -98,54 +149,12 @@ $.Ego.prototype.buildCanvas = function() {
  */
 $.Ego.prototype.draw = function() {
   if (this.active) {
-    $.sctx.globalCompositeOperation = "lighter";
-  
-    var newFlames = [];
-    
-    // Store flames that need to be recreated.
-    for (var i = 0; i < this.flame.length; i++) {
-      var p = this.flame[i];
-      p.remainingLife -= $.Game.stepFactor;
-      p.radius -= $.Game.stepFactor;
-  
-      // Store flames that need to be recreated.
-      if ((p.remainingLife < 0) || (p.radius < 0)) {
-        newFlames.push(i);
-      }
-    }
-    
-    // Calculate dist moved, then divide per flame.
-    var flamePos = {x: this.lastX, y: this.lastY};
-    var flameDist = Math.round($.Util.dist($.ego, flamePos)) / newFlames.length;
-    for (var i=0; i < newFlames.length; i++) {
-      flamePos.x += Math.cos(this.heading) * flameDist;
-      flamePos.y += Math.sin(this.heading) * flameDist;
-      this.flame[newFlames[i]] = new this.makeFlame(flamePos);
-    }
-    
-    // Now render the updated flames.
-    for (var i = 0; i < this.flame.length; i++) {
-      var p = this.flame[i];
-      p.opacity = Math.round(p.remainingLife/p.life*100)/100
-      var tempX = p.location.x + Math.cos(this.heading);
-      var tempY = p.location.y + Math.sin(this.heading);
-      
-      $.Util.fillCircle(
-          $.sctx, 
-          Math.round(tempX - this.x - p.radius - 1),
-          Math.round(tempY - this.y - p.radius - 1), 
-          Math.round(p.radius * 2),  
-          'rgba(226, 88, 34,' + p.opacity + ')');
-  
-      p.location.x -= p.speed.x;
-      p.location.y -= p.speed.y;
-    }
+    this.drawFlame();
   }
   
-  $.sctx.globalCompositeOperation = "source-over";
-    $.sctx.drawImage(this.canvas, 
-        (this.size * this.facing), 0, this.size, this.size,
-        -(this.size/2), -(this.size/2), this.size, this.size);
+  $.sctx.drawImage(this.canvas, 
+      0, 0, this.size, this.size,
+      -(this.size/2), -(this.size/2), this.size, this.size);
     
   if (this.active) {
     if ($.Game.dragNow) {
@@ -183,20 +192,34 @@ $.Ego.prototype.findNewPos = function() {
       newYPos = testY;
       currentStep+=2;
     } else {
-      if (!this.wallHit) {
-        if (hitBlocks.length > 0) {
-          if (this.digging) {
-            for (var i=0; i<hitBlocks.length; i++) {
-              $.Map.clearBlock(hitBlocks[i]);
+      
+      var hitWall = false;
+      for (var i=0; i<hitBlocks.length; i++) {
+        var hitBlock = hitBlocks[i];
+        if (hitBlock.type == '#') {    // Mine-able Wall
+          if (!this.wallHit) {
+            if (this.digging) {
+              $.Map.clearBlock(hitBlock);
             }
-            this.digging = false;
+            hitWall = true;
+          } else {
+            this.hitWall = false;
+            this.heading = null;
           }
-          this.wallHit = true;
+        } else if (hitBlock.type == '*') {   // Enemy
+          // Hit an enemy.
+          $.Sound.play('kill');
+          var enemy = $.Game.getEnemy(hitBlock.col, hitBlock.row);
+          $.Game.removeEnemy(enemy);
+          $.Map.clearBlock(hitBlock);
+
+        } else {
+          this.heading = null;
         }
-      } else {
-        this.heading = null;
-        this.wallHit = false;
       }
+      this.wallHit = hitWall;
+      this.digging = false;
+      
     }
   }
   
@@ -249,14 +272,17 @@ $.Ego.prototype.update = function() {
       }
     }
   } else {
-    // Otherwise it is one of the miners not currently being controller, i.e. not active (but 
+    // Otherwise it is one of the miners not currently being controlled, i.e. not active (but 
     // could still be online). The only thing to check for is collision with the active player,
     // since that would bring this miner online.
-    if (!this.online && $.Game.running) {
+    if (!this.online && $.Game.running && (this != $.ego)) {
       var distToEgo = $.Util.dist($.ego, this);
       if (distToEgo <= (this.size+2)) {
         this.online = true;
         this.button.classList.remove('offline');
+        $.Sound.play('online');
+        // TODO: Bug in here somewhere when ego is shot and it switches.
+        $.Game.showText(1, 'Miner ' + (this.minerNum+1) + ' online', true, 2500);
       }
     }
   }

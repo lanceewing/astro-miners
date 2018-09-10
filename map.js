@@ -48,11 +48,11 @@ $.Map = {
    * * = Glitch positions
    */
   map:  '########################################################################################################################################################'
-      + '##########      ##   #################        ###########  ############     ##############  ########  #####     ################################ ### ###'
-      + '##########0           ##############           #########     #########       ############    #######   ####     ##########        ###### # ###    ## ###'
+      + '##########     0##   #################        ###########  ############     ##############  ########  #####     ################################ ### ###'
+      + '##########            ##############           #########     #########       ############    #######   ####     ##########        ###### # ###    ## ###'
       + '##########             ############      #      ######        ### ####          #########   ######### #####  #############        #####          #######'
       + '###########             ############    ####    ######        ###  ####          #########  ######### ####################        #####          #######'
-      + '############    *        ############    ####   ######       ############        ###############      ###################         #####          #######'
+      + '############             ############    ####   ######       ############        ###############      ###################         #####          #######'
       + '############    ###       ############# ###### #########     ############         ###   ####          #################    ####    ####           ######'
       + '#############   #####      ##############################   ##########                  ####         #################     ######  #####           #####'
       + '##############   #####      ####   ######################    ########                   #####        ############ ####    ########  ####    ##      ####'
@@ -70,7 +70,7 @@ $.Map = {
       + '#####         ##########################          ########        ##############    ####         #########  ##  ######    ##########     ##      ###   #'
       + '####    7     ####  ##################             #######   #   ##############     ####        ##########      ####### ############     ##            #'
       + '###    ##      ##    ############  ###       #      ######  ###  ############       #####      ####### ###     ######     ###########   ####           #'
-      + '##     ###     ##     ###########  ####      ##     ######  ###   ####  ####         ######    ######   ##    ######      ##################       ## ##'
+      + '##     ###*    ##     ###########  ####      ##     ######  ###   ####  ####         ######    ######   ##    ######      ##################       ## ##'
       + '##      ###   6##      ###################   ###   #######  #### #####  ####         #######    #####    #    #####       #######   ########    ########'
       + '##       ########      ###################    ##   ######    #########   ###         ########      #          #####      #######    ######### ##########'
       + '##   #    #######      ###   #############     ####  ####    #########   ###         #########               ###################    ####################'
@@ -82,10 +82,10 @@ $.Map = {
       + '######        ##    #                  ####################         ######   #####################        #                #######        ##############'
       + '#####                                 ######################        ######  #################  ###       ###   #           ######          #############'
       + '#####                                #############   ########      ####### ##################   #   #     ##  ###           ####            ######### ##'
-      + '#  ##                 #              ############    ########    #####################   ####      ###    ##   #           #####            ########   #'
+      + '#  ##       *         #              ############    ########    #####################   ####      ###    ##   #           #####            ########   #'
       + '#  ### 9#####        ###               #########    #### #############################    ##       ####                    ####             #######    #'
       + '#  ##########    #  ##### ###           ####   ##   ##    ######### ##################              ####             #     ####        ##   #####      #'
-      + '##  #########   ############                   ###        ########   ################                ####           ###     ###              ##        #'
+      + '##  #########   ############       *           ###        ########   ################                ####           ###     ###              ##        #'
       + '##     ####### #############       ##         ####     ###  ######    ##############                  ###           ###        #####                   #'
       + '##      #############   #####     #####       ##     #####  #####         ######              #####   ###   ####     #         ######                  #'
       + '###     ###########      #####   #########           ####    ##           #####     ##       ######   ###########        ##    #######     #######     #'
@@ -174,18 +174,6 @@ $.Map = {
   },
   
   /**
-   * Tests if the given x/y pixel position is blocked by a wall block.
-   * 
-   * @param {number} x The x position to test.
-   * @param {number} y The y position to test.
-   * 
-   * @returns {Boolean}
-   */
-  isBlocked: function(x, y) {
-    return (this.getBlockAt(x, y).type == '#');
-  },
-  
-  /**
    * 
    */
   circleIsBlocked: function(x, y, r) {
@@ -215,16 +203,16 @@ $.Map = {
     var topRightBlock = $.Map.getBlockAt(x + r, y - r);
     var topLeftBlock = $.Map.getBlockAt(x - r, y - r);
     var bottomLeftBlock = $.Map.getBlockAt(x - r, y + r);
-    if ((bottomRightBlock.type == '#') && (this.blockCircleColliding(x, y, r, bottomRightBlock))) {
+    if ((bottomRightBlock.type != ' ') && (this.blockCircleColliding(x, y, r, bottomRightBlock))) {
       hitBlocks.push(bottomRightBlock);
     }
-    if ((topRightBlock.type == '#') && (this.blockCircleColliding(x, y, r, topRightBlock))) {
+    if ((topRightBlock.type != ' ') && (this.blockCircleColliding(x, y, r, topRightBlock))) {
       hitBlocks.push(topRightBlock);
     }
-    if ((topLeftBlock.type == '#') && (this.blockCircleColliding(x, y, r, topLeftBlock))) {
+    if ((topLeftBlock.type != ' ') && (this.blockCircleColliding(x, y, r, topLeftBlock))) {
       hitBlocks.push(topLeftBlock);
     }
-    if ((bottomLeftBlock.type == '#') && (this.blockCircleColliding(x, y, r, bottomLeftBlock))) {
+    if ((bottomLeftBlock.type != ' ') && (this.blockCircleColliding(x, y, r, bottomLeftBlock))) {
       hitBlocks.push(bottomLeftBlock);
     }
     return hitBlocks;
@@ -309,45 +297,8 @@ $.Map = {
     ctx.clearRect(block.col * $.Constants.CELL_WIDTH, (block.row + 104) * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
     ctx.clearRect((block.col + 152) * $.Constants.CELL_WIDTH, block.row * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
     ctx.clearRect((block.col + 152) * $.Constants.CELL_WIDTH, (block.row + 104) * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
-  
-//    ctx.fillStyle = 'black';
-//    ctx.beginPath();
-//    ctx.rect(block.col * $.Constants.CELL_WIDTH, block.row * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
-//    ctx.closePath();
-//    ctx.fill();
-//    ctx.beginPath();
-//    ctx.rect(block.col * $.Constants.CELL_WIDTH, (block.row + 104) * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
-//    ctx.closePath();
-//    ctx.fill();
-//    ctx.beginPath();
-//    ctx.rect((block.col + 152) * $.Constants.CELL_WIDTH, block.row * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
-//    ctx.closePath();
-//    ctx.fill();
-//    ctx.beginPath();
-//    ctx.rect((block.col + 152) * $.Constants.CELL_WIDTH, (block.row + 104) * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
-//    ctx.closePath();
-//    ctx.fill();
-//    
-//    ctx = this.contexts[1];
-//    ctx.fillStyle = 'black';
-//    ctx.beginPath();
-//    ctx.rect(block.col * $.Constants.CELL_WIDTH, block.row * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
-//    ctx.closePath();
-//    ctx.fill();
-//    ctx.beginPath();
-//    ctx.rect(block.col * $.Constants.CELL_WIDTH, (block.row + 104) * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
-//    ctx.closePath();
-//    ctx.fill();
-//    ctx.beginPath();
-//    ctx.rect((block.col + 152) * $.Constants.CELL_WIDTH, block.row * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
-//    ctx.closePath();
-//    ctx.fill();
-//    ctx.beginPath();
-//    ctx.rect((block.col + 152) * $.Constants.CELL_WIDTH, (block.row + 104) * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
-//    ctx.closePath();
-//    ctx.fill();
     
-    block.type = '.';
+    block.type = ' ';
     this.putBlock(block);
     this.updateSideBlocks(block,false);
   },
@@ -439,13 +390,12 @@ $.Map = {
       if ((xx < 152) && (yy < 104)) {
         // Reset the miner's initial position.
         miner = $.Game.miners[minerNum];
-        if (minerNum > 0) {
-          // We do not reset the main player, as that makes it inactive.
-          miner.reset();
-        }
-        miner.lastX = miner.x = (xx % 152) * $.Constants.CELL_WIDTH + ($.Constants.CELL_WIDTH / 2);
-        miner.lastY = miner.y = (yy % 104) * $.Constants.CELL_WIDTH + ($.Constants.CELL_WIDTH / 2);
-        console.log("adding miner x: " + miner.x + ", y: " + miner.y);
+        miner.reset();
+        miner.setPosition(
+          (xx % 152) * $.Constants.CELL_WIDTH + ($.Constants.CELL_WIDTH / 2),
+          (yy % 104) * $.Constants.CELL_WIDTH + ($.Constants.CELL_WIDTH / 2)
+        );
+        this.data[dataY * 152 + dataX] = ' ';
       }
     }
   },

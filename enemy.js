@@ -33,42 +33,45 @@ $.Enemy.prototype.update = function() {
       
       // TODO: Check the 10 miners, one each update. Reduce random to 5, so 5 * 10 miners = 50
       var miner = $.Game.miners[this.targetMiner];
-      var headingToMiner = Math.atan2(this.y - miner.y, this.x - miner.x) + (180 * Math.PI / 180);
-      var distToMiner = Math.round($.Util.dist(miner, this));
-      
-      if (distToMiner < 350) {
-        var currentStep = 1;
-        var lineOfSightToEgo = true;
+      // We only both to shoot online miners. When they're offline, it would be a waste of bullets.
+      if (miner.online) {
+        var headingToMiner = Math.atan2(this.y - miner.y, this.x - miner.x) + (180 * Math.PI / 180);
+        var distToMiner = Math.round($.Util.dist(miner, this));
         
-        while (lineOfSightToEgo && (currentStep < distToMiner)) {
-          // Look at next pixel.
-          var testX = this.x + Math.cos(headingToMiner) * Math.round(currentStep);
-          var testY = this.y + Math.sin(headingToMiner) * Math.round(currentStep);
+        if (distToMiner < 350) {
+          var currentStep = 1;
+          var lineOfSightToEgo = true;
           
-          var blocked  = $.Map.circleIsBlocked(testX, testY, 1);
-          if (!blocked) {
-            currentStep++;   // TODO: Maybe one pixel at a time is too fine grained.
-          } else {
-            lineOfSightToEgo = false;
-          }
-        }
-        
-        // If in range, and has line of sight, then fire!
-        if (lineOfSightToEgo) {
-          for (var bulletNum = 0; bulletNum < 5; bulletNum++) {
-            if ($.Game.bullets[bulletNum] == null) {
-              var startX = this.x + Math.cos(headingToMiner) * Math.round($.Constants.CELL_WIDTH / 2);
-              var startY = this.y + Math.sin(headingToMiner) * Math.round($.Constants.CELL_WIDTH / 2);
-              $.Game.bullets[bulletNum] = new $.Bullet(startX, startY, headingToMiner);
-              $.Sound.play('bomb');
-              break;
+          while (lineOfSightToEgo && (currentStep < distToMiner)) {
+            // Look at next pixel.
+            var testX = this.x + Math.cos(headingToMiner) * Math.round(currentStep);
+            var testY = this.y + Math.sin(headingToMiner) * Math.round(currentStep);
+            
+            var blocked  = $.Map.circleIsBlocked(testX, testY, 1);
+            if (!blocked) {
+              currentStep++;   // TODO: Maybe one pixel at a time is too fine grained.
+            } else {
+              lineOfSightToEgo = false;
             }
           }
+          
+          // If in range, and has line of sight, then fire!
+          if (lineOfSightToEgo) {
+            for (var bulletNum = 0; bulletNum < 5; bulletNum++) {
+              if ($.Game.bullets[bulletNum] == null) {
+                var startX = this.x + Math.cos(headingToMiner) * Math.round($.Constants.CELL_WIDTH / 2);
+                var startY = this.y + Math.sin(headingToMiner) * Math.round($.Constants.CELL_WIDTH / 2);
+                $.Game.bullets[bulletNum] = new $.Bullet(startX, startY, headingToMiner);
+                $.Sound.play('bomb');
+                break;
+              }
+            }
+          }
+        
+          // This is the enforced 3 frame delay between Bombs.
+          this.bulletDelay = 3;
+        
         }
-      
-        // This is the enforced 3 frame delay between Bombs.
-        this.bulletDelay = 3;
-      
       }
     }
     
@@ -136,8 +139,8 @@ $.Enemy.prototype.buildCanvas = function(seed, iconWidth, iconHeight) {
   ctx.arc(shadowRadius, shadowRadius, shadowRadius - 3, 0, 2 * Math.PI);
   ctx.clip();
   
-  var blockDensityX = 13;//11;//5;//17;
-  var blockDensityY = 13;//11;//5;//17;
+  var blockDensityX = 13;
+  var blockDensityY = 13;
   var blockWidth = iconWidth / blockDensityX;
   var blockHeight = iconHeight / blockDensityY;
   var blockMidX = ((blockDensityX + 1) / 2);

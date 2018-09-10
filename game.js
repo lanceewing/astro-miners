@@ -14,7 +14,6 @@ $.Game = {
   dragStart: null,
   dragNow: null,
   dragEnd: null,
-  
     
   /**
    * The time of the last animation frame. 
@@ -57,26 +56,6 @@ $.Game = {
   countdown: 0,
   
   /**
-   * Keeps track of when the screen should rotate by 90 degress.
-   */
-  rotateTimer: 0,
-  
-  /**
-   * The start time in milliseconds of the current rotation.
-   */
-  rotateStartTime: 0,
-  
-  /**
-   * The angle at which the rotation started.
-   */
-  rotateStartAngle: 0,
-  
-  /**
-   * Whether or not the screen is currently rotating.
-   */
-  rotating: false,
-  
-  /**
    * Current angle of rotation of the screen.
    */
   rotateAngle: 0,
@@ -102,11 +81,8 @@ $.Game = {
   time: 0,
   
   /**
-   * The current record time for game completion (like a hi score). Defaults
-   * to a second below one hour.
+   * Array of miner objects.
    */
-  lowTime: 3599000,
-  
   miners: [],
   
   /**
@@ -166,15 +142,14 @@ $.Game = {
     this.logTime("ENTERing start()");
     
     // Get a reference to each of the elements in the DOM that we'll need to update.
-    $.power = document.getElementById('power');
     $.msg1 = document.getElementById('msg1');
     $.msg2 = document.getElementById('msg2');
     $.msg3 = document.getElementById('msg3');
     $.enemies = document.getElementById('enemies');
     $.time = document.getElementById('time');
-    $.lowTime = document.getElementById('lowTime');
     $.wrapper = document.getElementById('wrap');
     $.miners = document.getElementById('miners');
+    $.mcnt = document.getElementById('mcnt');
     
     this.addMiners();
     
@@ -184,10 +159,131 @@ $.Game = {
     $.input = document.getElementById('screen');
     $.screen = document.getElementById('s');
     $.sctx = $.screen.getContext('2d');
-    //$.sctx.imageSmoothingEnabled = false;
     
     this.logTime("Before setting up event handlers");
+
+    // Register the event listeners for handling auto pause when the game loses focus.
+    window.addEventListener('blur', function(e) {
+      $.Game.hasFocus = false;
+    });
+    window.addEventListener('focus', function(e) {
+      $.Game.hasFocus = true;
+    });
     
+    this.logTime("After setting up event handlers. Before favicon.");
+    
+    this.renderFavicon();
+
+    this.logTime("After favicon. Before Ego constructor call.");
+    
+    this.logTime("Before sound init.");
+    
+    // The sound generation might be a bit time consuming on slower machines.
+    setTimeout(function() {
+      $.Sound.init();
+    }, 1000);
+    
+    this.logTime("Before disabling keys");
+    
+    $.Game.disableInput();
+    
+    this.logTime("After disabling keys. Before show title setTimeout.");
+    
+    setTimeout(function() {
+      $.Game.logTime("In show title setTimeout function.");
+      
+      // Show the title screen.
+      $.Game.showText(1, "Astro Miners");
+      $.Game.showText(3, "OFFLINE");
+      
+      $.Game.logTime("Before Game.init");
+      
+      // Initialise and then start the game loop.
+      $.Game.init(false);
+      $.Game.logTime("After Game.init. Before calling game loop first time.");
+      requestAnimationFrame($.Game._loop);
+      
+      $.Game.logTime("After game loop for first time. Before wrapper fade in.");
+      
+      $.Game.logTime("After wrapper fade in. Before calling setTimeout for click start.");
+      
+      $.Game.fadeOut($.msg2);
+      setTimeout(function() {
+        if ($.Game.starting && !$.Game.counting) {
+          $.Game.showText(2, 'Click to start');
+          $.Game.enableInput();
+        }
+      }, 5000);
+      
+      $.Game.logTime("Before enable keys");
+      $.Game.logTime("After enable keys");
+      
+    }, 1);
+    
+    this.logTime("After show title setTimeout.");
+  },
+  
+  addMiners: function() {
+    for (var i=0; i<10; i++) {
+      var sprite = document.createElement('span');
+      sprite.classList.add('miner');
+      sprite.classList.add('offline');
+      var minerCtx = $.Util.create2dContext(50, 50);
+      minerCtx.drawImage($.Util.renderSphere(50, 1, 'white', 0.95, 'black'), 0, 0);
+      sprite.style.backgroundImage = 'url(' + minerCtx.canvas.toDataURL("image/png") + ')';
+      $.miners.appendChild(sprite);
+      sprite.addEventListener('click', (function(miner) {
+        return function() {
+          var minerObj = $.Game.miners[miner];
+          if (minerObj.online && !$.Game.paused) {
+            var currentActive = document.getElementsByClassName('active');
+            if (currentActive && currentActive.length > 0) {
+              currentActive[0].classList.remove('active');
+            }
+            $.ego.active = false;
+            $.ego = minerObj;
+            $.ego.active = true;
+            this.classList.add('active');
+          }
+        };
+      })(i));
+      // Create the miner object and store reference to the miner button.
+      $.Game.miners[i] = new $.Ego(i);
+      $.Game.miners[i].button = sprite;
+    }
+  },
+  
+  /**
+   * Initialises the Game.
+   * 
+   * @param {Boolean} running Whether or not we should say that the Game is now running.
+   */
+  init: function(running) {
+    console.log("ENTERing Game.init");
+    
+    $.Game.time = 0;
+    $.Game.rotateAngle = 0;
+    $.Game.bullets = [];
+    
+    // Clear the enemies
+    $.Game.enemyCount = 0;
+    $.Game.enemyMap = {};
+    
+    $.Map.init();
+    
+    if (!running) {
+      $.ego = $.Game.miners[0];
+    }
+    
+    // Tells the game loop that the game is now running. During the game over state,
+    // this flag is false.
+    $.Game.running = false;
+    $.Game.starting = true;
+
+    $.Game.logTime("EXITing Game.init");
+  },
+  
+  enableInput: function() {
     // Set up the keyboard & mouse event handlers (size reduced way)
     $.input.onmousedown = function(e) {
       if ($.Game.running) {
@@ -255,150 +351,17 @@ $.Game = {
         };
       }
     };
-
-    // Register the event listeners for handling auto pause when the game loses focus.
-    window.addEventListener('blur', function(e) {
-      $.Game.hasFocus = false;
-    });
-    window.addEventListener('focus', function(e) {
-      $.Game.hasFocus = true;
-    });
-    
-    this.logTime("After setting up event handlers. Before favicon.");
-    
-    this.renderFavicon();
-
-    this.logTime("After favicon. Before Ego constructor call.");
-    
-    //$.ego = new $.Ego();
-
-    
-    this.logTime("Before sound init.");
-    
-    // The sound generation might be a bit time consuming on slower machines.
-    setTimeout(function() {
-      $.Sound.init();
-    }, 1000);
-    
-    this.logTime("Before disabling keys");
-    
-    $.Game.disableKeys();
-    
-    this.logTime("After disabling keys. Before show title setTimeout.");
-    
-    setTimeout(function() {
-      $.Game.logTime("In show title setTimeout function.");
-      
-      // Show the title screen.
-      $.Game.showText(1, "Astro Miners");
-      $.Game.showText(3, "OFFLINE");
-      
-      $.Game.logTime("Before Game.init");
-      
-      // Initialise and then start the game loop.
-      $.Game.init(false);
-      $.Game.logTime("After Game.init. Before calling game loop first time.");
-      requestAnimationFrame($.Game._loop);
-      
-      $.Game.logTime("After game loop for first time. Before wrapper fade in.");
-      
-      $.Game.logTime("After wrapper fade in. Before calling setTimeout for click start.");
-      
-      $.Game.fadeOut($.msg2);
-      setTimeout(function() {
-        if ($.Game.starting && !$.Game.counting) {
-          $.Game.showText(2, 'Click to start');
-        }
-      }, 5000);
-      
-      $.Game.logTime("Before enable keys");
-      $.Game.enableKeys();
-      $.Game.logTime("After enable keys");
-      
-    }, 1);
-    
-    this.logTime("After show title setTimeout.");
+    this.enableKeys();
   },
   
-  addMiners: function() {
-    for (var i=0; i<10; i++) {
-      var sprite = document.createElement('span');
-      sprite.classList.add('miner');
-      if (i > 0) {
-        sprite.classList.add('offline');
-      } else {
-        sprite.classList.add('active');
-      }
-      var minerCtx = $.Util.create2dContext(50, 50);
-      minerCtx.drawImage($.Util.renderSphere(50, 1, 'white', 0.95, 'black'), 0, 0);
-      sprite.style.backgroundImage = 'url(' + minerCtx.canvas.toDataURL("image/png") + ')';
-      $.miners.appendChild(sprite);
-      sprite.addEventListener('click', (function(miner) {
-        return function() {
-          console.log('miner ' + miner);
-          var minerObj = $.Game.miners[miner];
-          if (minerObj.online) {
-            var currentActive = document.getElementsByClassName('active');
-            if (currentActive && currentActive.length > 0) {
-              currentActive[0].classList.remove('active');
-            }
-            $.ego.active = false;
-            $.ego = minerObj;
-            $.ego.active = true;
-            this.classList.add('active');
-          }
-        };
-      })(i));
-      // Create the miner object and store reference to the miner button.
-      $.Game.miners[i] = new $.Ego();
-      $.Game.miners[i].button = sprite;
-    }
-  },
-  
-  /**
-   * Initialises the Game.
-   * 
-   * @param {Boolean} running Whether or not we should say that the Game is now running.
-   */
-  init: function(running) {
-    $.Game.logTime("ENTERing Game.init. Before ego.reset");
-    //$.ego.reset();
-    $.Game.logTime("After ego.reset");
-
-    this.time = 0;
-    this.rotateTimer = $.Constants.ROTATE_INTERVAL;
-    this.rotateAngle = 0;
-    this.rotateStartTime = 0;
-    this.rotateStartAngle = 0;
-    this.rotating = false;
-    
-    this.health = 9;
-    this.bullets = [];
-    
-    // Load the current low time from local storage (equivalent to hi score).
-    this.lowTime = 3599000;// (localStorage? localStorage.getItem('lowTime') || 3599000 : 3599000);
-    this.lowTimeStr = this.buildTimeString(this.lowTime);
-    
-    // Clear the enemies
-    this.enemyCount = 0;
-    this.enemyMap = {};
-    
-    $.Game.logTime("Before Map.init");
-    $.Map.init();
-    $.ego = this.miners[0];
-    $.ego.active = true;
-    $.ego.online = true;
-    $.Game.logTime("After Map.init");
-    
-    // Tells the game loop that the game is now running. During the game over state,
-    // this flag is false.
-    this.running = running;
-    this.starting = true;
-    
-    // Clear any pre-existing rotate class.
-    $.screen.className = '';
-    
-    $.Game.logTime("EXITing Game.init");
+  disableInput: function() {
+    $.input.onmousedown = null;
+    $.input.onmouseup = null;
+    $.input.onmousemove = null;
+    $.input.ontouchend = null;
+    $.input.ontouchstart = null;
+    $.input.ontouchmove = null;
+    this.disableKeys();
   },
   
   /**
@@ -457,6 +420,7 @@ $.Game = {
   loop: function(now) {
     // Immediately request another invocation on the next
     requestAnimationFrame(this._loop);
+    // Create a single canvas to render the sprite sheet for the four directions.
     
     // Calculates the time since the last invocation of the game loop.
     this.updateDelta(now);
@@ -468,7 +432,7 @@ $.Game = {
         $.Sound.pause('music');
         this.paused = true;
         this.showText(1, 'Paused');
-        this.showText(2, 'Click to start');
+        this.showText(2, 'Click to continue');
       } else {
         // Game has focus and is not paused, so execute normal game loop, which is
         // to update all objects on the screen.
@@ -498,6 +462,7 @@ $.Game = {
               $.Game.counting = false;
               if ($.Game.starting) {
                 $.Game.time = 0;
+                $.Game.lastTime = 0;
                 $.Game.starting = false;
                 $.Game.running = true;
               }
@@ -514,17 +479,22 @@ $.Game = {
           this.fadeOut($.msg1);
           this.fadeOut($.msg2);
           this.fadeOut($.msg3);
-          
+
+          // Create a single canvas to render the sprite sheet for the four directions.
           // This says countdown is about to start (in 1 second).
           this.counting = true;
           
-          // Start the countdown in 1 second. Gives the previous messages time to fade.
           setTimeout(function() {
-            // TODO: This stops the countdown from working properly. Fix when implementing game over.
-            //if (!$.Game.running) $.Game.init(false);
-            $.Game.countdown = 3000;
-            $.Game.showText(2, 'Get ready', true, 2500);
-          }, 1000);
+            if (!$.Game.running) $.Game.init(false);
+          
+            // Start the countdown in 1 second. Gives the previous messages time to fade.
+            setTimeout(function() {
+              $.ego.activate();
+              $.Game.countdown = 3000;
+              $.Game.showText(2, 'Ready Miner ' + ($.ego.minerNum+1), true, 2500);
+            }, 1000);
+          
+          }, 500);
 
           $.Sound.play('music');
         }
@@ -554,23 +524,11 @@ $.Game = {
     // Remove the keyboard input temporarily, just in case the player was rapid
     // firing when they died. We don't want them to immediately trigger a game
     // restart if they didn't want to.
-    this.disableKeys();
+    this.disableInput();
     
     // This tells the game loop that the game needs to be re-initialised the next 
     // time the player unpauses the game.
     this.running = false;
-    
-    // Did we beat the lowest time?
-    if (this.time < this.lowTime) {
-      this.lowTime = this.time;
-      this.lowTimeStr = this.buildTimeString(this.lowTime);
-      $.lowTime.innerHTML = this.lowTimeStr;
-    }
-    
-    // Store the low time (aka. hi score) in local storage for next time.
-    if (localStorage) {
-      localStorage.setItem('lowTime', this.lowTime);
-    }
     
     // Pause the game and tell the player it is all over.
     this.paused = true;
@@ -580,7 +538,7 @@ $.Game = {
     // SPACE to restart.
     setTimeout(function() {
       $.Game.showText(2, 'Click to restart');
-      $.Game.enableKeys();
+      $.Game.enableInput();
     }, 3000);
   },
   
@@ -591,7 +549,7 @@ $.Game = {
     // Remove the keyboard input temporarily, just in case the player was rapid
     // firing when they died. We don't want them to immediately trigger a game
     // restart if they didn't want to.
-    this.disableKeys();
+    this.disableInput();
     
     // This tells the game loop that the game needs to be re-initialised the next 
     // time the player unpauses the game.
@@ -599,7 +557,10 @@ $.Game = {
     
     // Pause the game and tell the player it is all over.
     this.paused = true;
-    this.showText(1, "Game Over");
+    
+    this.showText(1, "Astro Miners");
+    // Create a single canvas to render the sprite sheet for the four directions.
+    this.showText(3, "OFFLINE");
     
     // Play the explosion sound and trigger the explode transition on Ego.
     $.Sound.play('explosion');
@@ -608,12 +569,13 @@ $.Game = {
     // SPACE to restart.
     setTimeout(function() {
       $.Game.showText(2, 'Click to restart');
-      $.Game.enableKeys();
+      $.Game.enableInput();
     }, 3000);
   },
   
   /**
-   * Displays the given text in the given message area. There are two message areas, msg1 and msg2. One
+   * Displays the given text in the given message area. T
+  // Create a single canvas to render the sprite sheet for the four directions.here are two message areas, msg1 and msg2. One
    * is much larger than the other.
    * 
    * @param {number} num Either 1 or 2, identifying either msg1 or msg2 as the place where the text should be displayed.
@@ -646,6 +608,7 @@ $.Game = {
     } else if (duration) {
       // If a duration was provided but fade was false, then we will remove the message 
       // immediately after the specified duration.
+      // Create a single canvas to render the sprite sheet for the four directions.
       setTimeout(function(e) {
         if (msgElem.innerHTML == text) { 
           msgElem.style.display = 'none';
@@ -663,6 +626,7 @@ $.Game = {
     // Remove any previous transition.
     elem.removeAttribute('style');
     elem.style.display = 'block';
+    // Create a single canvas to render the sprite sheet for the four directions.
     
     // We need to change the opacity in a setTimeout to give the display change time to take effect first.
     setTimeout(function() {
@@ -683,7 +647,8 @@ $.Game = {
     // We need to change the display after the opacity transition has reached 0.0, which is in 0.5 seconds.
     setTimeout(function() {
       elem.style.display = 'none';
-    }, 500);  // 500ms needs to match the opacity transition duration.
+    }, 500);  // 500ms needs to match the opacity tra
+    // Create a single canvas to render the sprite sheet for the four directions.nsition duration.
   },
   
   /**
@@ -691,7 +656,8 @@ $.Game = {
    * zero padded.
    * 
    * @param {Object} field The DOM Element identifying the status line field to update.
-   * @param {Object} value The value to update the status line field text to be (will be zero padded).
+   * @param {Object} value The value to update the st
+  // Create a single canvas to render the sprite sheet for the four directions.atus line field text to be (will be zero padded).
    */
   setStatus: function(field, value) {
     field.innerHTML = ('000000000' + value).substr(-field.innerHTML.length);
@@ -719,7 +685,8 @@ $.Game = {
    */
   updateObjects: function() {
     var enemy, bullet, block;
-    
+
+    // Create a single canvas to render the sprite sheet for the four directions.
     // Update ego (the player).
     if ($.Game.running) {
       $.ego.update();
@@ -742,66 +709,78 @@ $.Game = {
         this.bullets[bulletNum].move();
         
         block = $.Map.getBlockAt(bullet.x, bullet.y);
-        if ((block.type != ' ') && (block.type != '.')) {
+        if ((block.type == '#') || (block.type == '+')) {
+          // TODO: + to be rock?
           bullet.hit = true;
-//          if (block.type == '*') {
-//            // Hit an enemy.
-//            $.Sound.play('kill');
-//            enemy = this.getEnemy(block.col, block.row);
-//            this.removeEnemy(enemy);
-//            $.Map.clearBlock(block);
-//          }
+        } else {
+          // Check for miner collision
+          for (var minerNum = 0; minerNum < 10; minerNum++) {
+            var miner = this.miners[minerNum];
+            if (miner.online) {
+              var distToMiner =  $.Util.dist(miner, bullet);
+              if (distToMiner < (miner.size/2)) {
+                // Miner hit. Set to offline.
+                var foundOnlineMiner = false;
+                bullet.hit = true;
+                miner.online = false;
+                miner.button.classList.add('offline');
+                if (miner.active) {
+                  // This miner is the current ego. Switch to another online miner.
+                  miner.active = false;
+                  miner.button.classList.remove('active');
+                  for (var newMinerNum = 0; newMinerNum < 10; newMinerNum++) {
+                    var newMiner = this.miners[newMinerNum];
+                    if (newMiner.online) {
+                      foundOnlineMiner = true;
+                      break;
+                    }
+                  }
+                  // If we didn't find a new ego, its game over.
+                  if (foundOnlineMiner) {
+                    this.disableInput();
+                    $.Game.showText(3, "MINER " + (miner.minerNum + 1) + " OFFLINE", true, 2500);
+                    $.Game.showText(2, 'Ready Miner ' + (newMiner.minerNum+1), true, 2500);
+                    setTimeout(function() {
+                      $.ego = newMiner;
+                      $.ego.active = true;
+                      $.ego.button.classList.add('active');
+                      $.Game.enableInput();
+                    }, 2000);
+                  }
+                  else {
+                    // If we didn't find a new ego, its game over.
+                    $.Game.gameover();
+                    break;
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
       
     // Updates the enemies. 
-    var numOfEnemies = this.enemyCount;
     for (var key in this.enemyMap) {
       if (this.enemyMap.hasOwnProperty(key)) {
         enemy = this.enemyMap[key];
         enemy.update();
       }
     }
-      
-//    // Has the glitch enemy grown in size?
-//    if (this.enemyCount > numOfEnemies) {
-//      $.Map.swap();
-//    }
-      
-//    // Update the rotation timer. Rotate by 90 degrees every ROTATE_INTERVAL.
-//    if (this.rotateTimer <= 0) {
-//      if (!this.rotating) {
-//        $.screen.className = 'rotateTo' + ((this.rotateAngle + 90) % 360);
-//        this.rotateStartTime = this.time;
-//        this.rotateStartAngle = ~~this.rotateAngle;
-//        this.rotating = true;
-//      }
-//      var rotatePercentage = (this.time - this.rotateStartTime)/2000;
-//      this.rotateAngle = ~~(this.rotateStartAngle + (90 * rotatePercentage));
-//      if ((this.rotateAngle - this.rotateStartAngle) > 90) {
-//        this.rotateAngle = ((~~(this.rotateAngle / 90)) * 90) % 360;
-//        $.ego.playerAngle = this.rotateAngle;
-//        this.rotateTimer = $.Constants.ROTATE_INTERVAL;
-//        $.ego.direction = $.ego.playerAngle / 90;
-//        this.rotating = false;
-//      }
-//    } else {
-//      this.rotateTimer--;
-//    }
     
     // Update status line.
+    this.onlineMinerCount = 10 - document.getElementsByClassName('offline').length;
     $.time.innerHTML = this.buildTimeString(this.time);
     this.setStatus($.enemies, this.enemyCount);
-    $.lowTime.innerHTML = this.lowTimeStr;
+    this.setStatus($.mcnt, this.onlineMinerCount);
       
     // Draw all.
     this.draw();
     
-//    // Check for game won.
-//    if (this.enemyCount == 0) {
-//      $.Game.won();
-//    }
+    // Check for game won. All miners online, all enemies dead.
+    if ((this.onlineMinerCount == 10) && (this.enemyCount == 0)) {
+      $.Game.won();
+    }
   },
   
   /**
@@ -820,9 +799,11 @@ $.Game = {
       minutes = 99;
       seconds = 59;
     }
-    if (seconds != this.lastSeconds) {
-      this.rotateAngle = ((this.rotateAngle + .1) % 360);
+    //if ((seconds != this.lastSeconds) && !this.paused) {
+    if (!this.paused) {
+      this.rotateAngle = ((this.rotateAngle + .05) % 360);
     }
+    //}
     this.lastSeconds = seconds;
     return (('00' + minutes).substr(-2) + ':' + ('00' + seconds).substr(-2));
   },
@@ -837,7 +818,7 @@ $.Game = {
   renderFavicon: function() {
     var favicon = document.getElementById('favicon');
     var ctx = $.Util.create2dContext(16, 16);
-    ctx.drawImage($.Util.renderSphere(50, 4, 'rgb(197,179,88)', 1, 'black', 'white'), 0, 0, 16, 16);
+    ctx.drawImage($.Util.renderSphere(50, 4, 'white', 1, 'black', 'white'), 0, 0, 16, 16);
     favicon.href = ctx.canvas.toDataURL();
   },
   
@@ -902,10 +883,19 @@ $.Game = {
     for (var minerNum = 0; minerNum < 10; minerNum++) {
       var miner = this.miners[minerNum];
       if (miner != $.ego) {
+        if (!miner.online) {
+          // Offline miners are rendered darker, to indicate no power.
+          $.sctx.globalAlpha=0.3;
+        } else {
+          miner.drawFlame();
+        }
+        
         $.sctx.drawImage(miner.canvas, 
             0, 0, miner.size, miner.size,
             miner.x - $.ego.x - (miner.size/2), miner.y - $.ego.y - (miner.size/2), miner.size, miner.size);
+        
       }
+      $.sctx.globalAlpha=1.0;
     }
     
     $.sctx.restore();

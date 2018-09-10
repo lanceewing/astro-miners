@@ -12,16 +12,19 @@ body {
   -moz-border-radius:50%;
   -webkit-border-radius:50%;
   border: 4px solid black;
+  cursor: pointer;
 }
 .offline {
   opacity: 0.2;
+  cursor: not-allowed;
 }
 .active {
-  border:4px solid red;
+  border:4px solid rgb(226, 88, 34);
+  box-shadow: 0 0px 5px 5px rgba(226, 88, 34,0.6);
 }
 #miners {
   height: 70px;
-  padding-top: 50px;
+  padding-top: 40px;
 }
 #light {
   width: 100%;
@@ -36,7 +39,7 @@ body {
 #wrap {
   margin: auto;
   width: 700px;
-  height: 780px;
+  height: 880px;
   position: absolute;
   top: 0;
   left: 0;
@@ -44,19 +47,14 @@ body {
   right: 0;
   display: none;
 }
-#ctrl {
-  padding: 7px 0px 7px 7px;
-  font: 11px courier new;
-  color: #C5B358;
-}
 #status {
-  padding: 5px 0px 3px 10px;
+  padding: 5px 0px 40px 10px;
   z-index: 3;
   text-align: left;
-  font-size: 14px;
+  font-size: 20px;
   text-shadow: 2px 2px 4px rgba(0,0,80,1.0);
 }
-#status span, #ctrl span {
+#status span {
   position: static;
   display: inline-block;
 }
@@ -73,12 +71,6 @@ body {
   cursor: crosshair;
   border-radius: 50%;
 }
-.testGradient {
-  background: -webkit-linear-gradient(#434343, #000000);
-  background: -o-linear-gradient(#434343, #000000);
-  background: -moz-linear-gradient(#434343, #000000);
-  background: linear-gradient(#434343, #000000);
-}
 #screen canvas {
   position: absolute;
   top: -150px;
@@ -86,16 +78,6 @@ body {
 }
 #screen * {
   position: absolute;
-}
-#power {
-  background: #C5B358;
-  height: 24px;
-  width: 694px;
-}
-#powerbar {
-  background: #000;
-  width: 694px;
-  border: 3px solid #222;
 }
 .msg {
   z-index: 1500;
@@ -120,78 +102,9 @@ body {
 #msg2 {
   top: 400px;
   text-shadow: -1px -1px 1px #fff, 1px 1px 1px #000;
-  /*background-color: #6495ed29;*/
 }
 @keyframes blinker {
   50% {
     opacity: 0;
   }
-}
-.rotateTo90 {
-  -webkit-animation:from0To90 2s linear forwards;
-  -moz-animation:from0To90 2s linear forwards;
-  animation:from0To90 2s linear forwards;
-}
-.rotateTo180 {
-  -webkit-animation:from90To180 2s linear forwards;
-  -moz-animation:from90To180 2s linear forwards;
-  animation:from90To180 2s linear forwards;
-}
-.rotateTo270 {
-  -webkit-animation:from180To270 2s linear forwards;
-  -moz-animation:from180To270 2s linear forwards;
-  animation:from180To270 2s linear forwards;
-}
-.rotateTo0 {
-  -webkit-animation:from270To360 2s linear forwards;
-  -moz-animation:from270To360 2s linear forwards;
-  animation:from270To360 2s linear forwards;
-}
-@-moz-keyframes from0To90 { 
-  0% { -moz-transform: rotate(0deg); } 
-  100% { -moz-transform: rotate(-90deg); }
-}
-@-webkit-keyframes from0To90 { 
-  0% { -webkit-transform: rotate(0deg); } 
-  100% { -webkit-transform: rotate(-90deg); } 
-}
-@keyframes from0To90 { 
-  0% { -webkit-transform: rotate(0deg); transform:rotate(0deg); } 
-  100% { -webkit-transform: rotate(-90deg); transform:rotate(-90deg); } 
-}
-@-moz-keyframes from90To180 { 
-  0% { -moz-transform: rotate(-90deg); } 
-  100% { -moz-transform: rotate(-180deg); }
-}
-@-webkit-keyframes from90To180 { 
-  0% { -webkit-transform: rotate(-90deg); } 
-  100% { -webkit-transform: rotate(-180deg); } 
-}
-@keyframes from90To180 { 
-  0% { -webkit-transform: rotate(-90deg); transform:rotate(-90deg); } 
-  100% { -webkit-transform: rotate(-180deg); transform:rotate(-180deg); } 
-}
-@-moz-keyframes from180To270 { 
-  0% { -moz-transform: rotate(-180deg); } 
-  100% { -moz-transform: rotate(-270deg); }
-}
-@-webkit-keyframes from180To270 { 
-  0% { -webkit-transform: rotate(-180deg); } 
-  100% { -webkit-transform: rotate(-270deg); } 
-}
-@keyframes from180To270 { 
-  0% { -webkit-transform: rotate(-180deg); transform:rotate(-180deg); } 
-  100% { -webkit-transform: rotate(-270deg); transform:rotate(-270deg); } 
-}
-@-moz-keyframes from270To360 { 
-  0% { -moz-transform: rotate(-270deg); } 
-  100% { -moz-transform: rotate(-360deg); }
-}
-@-webkit-keyframes from270To360 { 
-  0% { -webkit-transform: rotate(-270deg); } 
-  100% { -webkit-transform: rotate(-360deg); } 
-}
-@keyframes from270To360 { 
-  0% { -webkit-transform: rotate(-270deg); transform:rotate(-270deg); } 
-  100% { -webkit-transform: rotate(-360deg); transform:rotate(-360deg); } 
 }

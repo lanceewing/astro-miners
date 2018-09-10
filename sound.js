@@ -32,6 +32,10 @@ $.Sound = {
       this.add('explosion', 10, [3,,0.3453,0.6998,0.2278,0.08,,-0.0553,,,,-0.2784,0.6294,,,,,,1,,,,,0.52]);
       this.add('count', 1, [2,,0.1707,,0.0644,0.5146,,,,,,,,,,,,,1,,,0.1,,0.5]);
       this.add('kill', 10, [3,,0.1527,0.6742,0.3473,0.018,,0.0425,,,,,,,,,0.2314,-0.0231,1,,,,,0.5]);
+      
+      
+      //this.add('online', 10, [0,,0.1583,,0.4507,0.2316,,0.4005,,,,,,0.1841,,0.5019,,,1,,,,,0.5]); // Good enough
+      this.add('online', 10, [2,,0.1583,,0.4507,0.2316,,0.4005,,,,,,0.1841,,0.5019,,,1,,,,,0.5]);  // Also good
     }
     
     // Hit:
@@ -104,6 +108,7 @@ $.Sound = {
       if (data instanceof Array) {
         // If it is an Array, it must be jsfxr data.
         audio.src = jsfxr(data);
+        audio.volume = 0.4;
       } else {
         // Otherwise it is SoundBox data.
         var player = new CPlayer();
@@ -117,7 +122,7 @@ $.Sound = {
         audio.src = URL.createObjectURL(new Blob([player.createWave()], {type: "audio/wav"}));
         // This is background music, so we set it to loop and turn the volume down a bit.
         audio.loop = true;
-        audio.volume = 0.35;
+        audio.volume = 1.0;
       }
       this.sounds[name].pool.push(audio);
     }
@@ -142,7 +147,6 @@ $.Sound = {
           sound.tick < sound.count - 1 ? sound.tick++ : sound.tick = 0;
         }).catch(error => {
           // Autoplay was prevented.
-          // Show a "Play" button so that user can start playback.
         });
       }
     }
