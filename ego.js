@@ -1,35 +1,6 @@
-/*
- * IDEAS:
- * 
- * - Mines have energy "crystals" that usually provide the energy to drive mining machines
- * - Alien parasites awoken from hibernation within the mined minerals
- * - Alien parasites start absorbing energy from crystals
- * - Some parasites absorb blue, some green, some red, leaving all crystals discharged
- * - Automated machines shut down due to lack of power
- * - Ego can store energy in discharged crystals to bring them back online. Needs to be white to work.
- * - When all crystals in an area are white, that area brought back online
- * - Lines around edges of area glow white when area online (grey when not online)
- * - Health is shown by amount of light around ego. It reduces as health goes down.
- * - Mining machines start up when area brough back online. They start digging.
- * - Doors?
- * 
- * 
- * NEW IDEAS:
- * 
- * - You are the miner
- * - All other miners are offline
- * - When you touch another miner, they come online
- * - Online miners reflect what you do, so move in opposite directions
- * - Perhaps it depends what angle you hit them in? Or is that too open/free?
- * - Hitting blocks will destroy them, and will release particles that are hazardous to aliens
- * - Other miners only reflect what you do when they're on the screen with you, otherwise they wait
- * 
- */
-
 /**
  * Creates a new Ego. This is the main character whom the player controls. The
- * name originates with the old Sierra On-Line 3D animated adventure games. There
- * should be only one instance of this class.
+ * name originates with the old Sierra On-Line 3D animated adventure games. 
  * 
  * @constructor
  */
@@ -157,7 +128,7 @@ $.Ego.prototype.draw = function() {
       -(this.size/2), -(this.size/2), this.size, this.size);
     
   if (this.active) {
-    if ($.Game.dragNow) {
+    if ($.Game.dragNow && $.Game.dragStart) {
       var dragDist = $.Util.dist($.Game.dragNow, $.Game.dragStart);
       var dragDuration = $.Game.dragNow.t - $.Game.dragStart.t;
       if ((dragDist > 5) && (dragDuration > 200)) {
@@ -208,7 +179,8 @@ $.Ego.prototype.findNewPos = function() {
           }
         } else if (hitBlock.type == '*') {   // Enemy
           // Hit an enemy.
-          $.Sound.play('kill');
+          $.Sound.play('explosion');
+          $.Game.showText(1, 'Enemy destroyed', true, 2500);
           var enemy = $.Game.getEnemy(hitBlock.col, hitBlock.row);
           $.Game.removeEnemy(enemy);
           $.Map.clearBlock(hitBlock);
@@ -238,36 +210,30 @@ $.Ego.prototype.update = function() {
     // The player is the only active miner, so this must be the player.
     if ($.Game.dragEnd && $.Game.dragStart) {
       $.Game.mouseButton = 0;
-  
+      
       // The player is always in the middle of the window, so we calculate the heading from that point.
       var playerScreenX = (~~($.Constants.WRAP_WIDTH / 2));
       var playerScreenY = (~~($.Constants.WRAP_HEIGHT / 2));
       var clickHeading = Math.atan2(playerScreenY - $.Game.dragEnd.y, playerScreenX - $.Game.dragEnd.x) + ((($.Game.rotateAngle + 180) % 360) * Math.PI / 180);
       var dragDist = $.Util.dist($.Game.dragEnd, $.Game.dragStart);
       var dragDuration = $.Game.dragEnd.t - $.Game.dragStart.t;
+      var distToEgo = $.Util.dist($.Game.dragEnd, { x: playerScreenX, y: playerScreenY});
+      var mapX = this.x + Math.cos(clickHeading) * distToEgo;
+      var mapY = this.y + Math.sin(clickHeading) * distToEgo;
+      var block = $.Map.getBlockAt(mapX, mapY);
       
       $.Game.dragEnd = $.Game.dragStart = $.Game.dragNow = null;
       
       if (this.heading == null) this.heading = clickHeading;
       
-      if ((dragDist > 5) && (dragDuration > 200)) {
+      if ((dragDist > 5) && (dragDuration > 200) && (block.type == '#')) {
         // If the drag distance and duration are beyond a threshold indicating there 
-        // was a drag (and not just a click in place), then ego will move.
-        //if (this.heading == null) this.heading = clickHeading;
-        
+        // was a drag (and not just a click in place), and the end point is a wall
+        // block, then ego will move there and dig.
         this.digging = true;
         
       } else {
-        // The player can only fire 5 bullets at once.
-  //      for (var bulletNum = 0; bulletNum < 5; bulletNum++) {
-  //        if ($.Game.bullets[bulletNum] == null) {
-  //          $.Game.bullets[bulletNum] = new $.Bullet(this.x, this.y, clickHeading);
-  //          $.Sound.play('bomb');
-  //          break;
-  //        }
-  //      }
-        // TODO: Change bullet firing to movement without mining.
-        
+        // Otherwise digging is disabled and you stop at the wall.
         this.digging = false;
       }
     }

@@ -116,31 +116,16 @@ $.Game = {
    * @param {$.Enemy} enemy The Enemy to remove from the Game's enemy map.
    */
   removeEnemy: function(enemy) {
-    if (this.enemyMap[enemy.key]) {
+    if (enemy && enemy.key && this.enemyMap[enemy.key]) {
       delete this.enemyMap[enemy.key]; 
       this.enemyCount--;
     }
-  },
-  
-  lastLogTime: null,
-  
-  logTime: function(msg) {
-    var date = new Date();
-    var timestamp = date.getTime();
-    var duration = 0;
-    if (this.lastLogTime) {
-      duration = timestamp - this.lastLogTime;
-    }
-    this.lastLogTime = timestamp;
-    console.log("" + timestamp + " (" + duration + "): " + msg);
   },
   
   /**
    * Starts the game. 
    */
   start: function() {
-    this.logTime("ENTERing start()");
-    
     // Get a reference to each of the elements in the DOM that we'll need to update.
     $.msg1 = document.getElementById('msg1');
     $.msg2 = document.getElementById('msg2');
@@ -159,8 +144,6 @@ $.Game = {
     $.input = document.getElementById('screen');
     $.screen = document.getElementById('s');
     $.sctx = $.screen.getContext('2d');
-    
-    this.logTime("Before setting up event handlers");
 
     // Register the event listeners for handling auto pause when the game loses focus.
     window.addEventListener('blur', function(e) {
@@ -169,43 +152,24 @@ $.Game = {
     window.addEventListener('focus', function(e) {
       $.Game.hasFocus = true;
     });
-    
-    this.logTime("After setting up event handlers. Before favicon.");
-    
-    this.renderFavicon();
 
-    this.logTime("After favicon. Before Ego constructor call.");
-    
-    this.logTime("Before sound init.");
+    this.renderFavicon();
     
     // The sound generation might be a bit time consuming on slower machines.
     setTimeout(function() {
       $.Sound.init();
     }, 1000);
-    
-    this.logTime("Before disabling keys");
-    
+
     $.Game.disableInput();
-    
-    this.logTime("After disabling keys. Before show title setTimeout.");
-    
+
     setTimeout(function() {
-      $.Game.logTime("In show title setTimeout function.");
-      
       // Show the title screen.
       $.Game.showText(1, "Astro Miners");
       $.Game.showText(3, "OFFLINE");
       
-      $.Game.logTime("Before Game.init");
-      
       // Initialise and then start the game loop.
       $.Game.init(false);
-      $.Game.logTime("After Game.init. Before calling game loop first time.");
       requestAnimationFrame($.Game._loop);
-      
-      $.Game.logTime("After game loop for first time. Before wrapper fade in.");
-      
-      $.Game.logTime("After wrapper fade in. Before calling setTimeout for click start.");
       
       $.Game.fadeOut($.msg2);
       setTimeout(function() {
@@ -215,12 +179,7 @@ $.Game = {
         }
       }, 5000);
       
-      $.Game.logTime("Before enable keys");
-      $.Game.logTime("After enable keys");
-      
     }, 1);
-    
-    this.logTime("After show title setTimeout.");
   },
   
   addMiners: function() {
@@ -259,8 +218,6 @@ $.Game = {
    * @param {Boolean} running Whether or not we should say that the Game is now running.
    */
   init: function(running) {
-    console.log("ENTERing Game.init");
-    
     $.Game.time = 0;
     $.Game.rotateAngle = 0;
     $.Game.bullets = [];
@@ -273,14 +230,20 @@ $.Game = {
     
     if (!running) {
       $.ego = $.Game.miners[0];
+      
+      // Clean up miner switch buttons for start of game.
+      var minerButtons = document.getElementsByClassName('miner');
+      for (var buttonNum=0; buttonNum<minerButtons.length; buttonNum++) {
+        var minerButton = minerButtons[buttonNum];
+        minerButton.classList.remove('active');
+        minerButton.classList.add('offline');
+      }
     }
     
     // Tells the game loop that the game is now running. During the game over state,
     // this flag is false.
     $.Game.running = false;
     $.Game.starting = true;
-
-    $.Game.logTime("EXITing Game.init");
   },
   
   enableInput: function() {
@@ -584,7 +547,8 @@ $.Game = {
    * @param {number} duration If set then the duration after which the text will either fade, or be removed instantly (depending on the value of fade).
    */
   showText: function(num, text, fade, duration) {
-    var msgElem = $['msg'+num];
+    // TODO: var msgElem = $['msg'+num];   // Advanced opts doesn't like this
+    var msgElem = document.getElementById('msg'+num);
     
     // Updates the text of the identified message area.
     msgElem.innerHTML = text;
@@ -724,6 +688,7 @@ $.Game = {
                 bullet.hit = true;
                 miner.online = false;
                 miner.button.classList.add('offline');
+                $.Sound.play('offline');
                 if (miner.active) {
                   // This miner is the current ego. Switch to another online miner.
                   miner.active = false;
@@ -735,9 +700,10 @@ $.Game = {
                       break;
                     }
                   }
-                  // If we didn't find a new ego, its game over.
+
                   if (foundOnlineMiner) {
                     this.disableInput();
+                    $.Game.dragEnd = $.Game.dragStart = $.Game.dragNow = null;
                     $.Game.showText(3, "MINER " + (miner.minerNum + 1) + " OFFLINE", true, 2500);
                     $.Game.showText(2, 'Ready Miner ' + (newMiner.minerNum+1), true, 2500);
                     setTimeout(function() {
@@ -904,7 +870,7 @@ $.Game = {
   }
 };
 
-// The recommended requestAnimationFrame shim
+//// The recommended requestAnimationFrame shim
 (function() {
   var lastTime = 0;
   var vendors = ['ms', 'moz', 'webkit', 'o'];

@@ -28,14 +28,10 @@ $.Sound = {
     if (this.active) {
       this.add('music', 1, this.song);
       this.add('bomb', 10, [2,,0.2,0.81,0.09,0.6609,,-0.2901,-0.64,,,,,0.072,0.191,,-0.38,-0.02,1,,,0.1841,,0.5]);
-      this.add('hit', 10, [3,,0.1283,0.6002,0.4009,0.06,,,,,,,,,,,-0.0393,-0.2507,1,,,,,0.5]);
       this.add('explosion', 10, [3,,0.3453,0.6998,0.2278,0.08,,-0.0553,,,,-0.2784,0.6294,,,,,,1,,,,,0.52]);
       this.add('count', 1, [2,,0.1707,,0.0644,0.5146,,,,,,,,,,,,,1,,,0.1,,0.5]);
-      this.add('kill', 10, [3,,0.1527,0.6742,0.3473,0.018,,0.0425,,,,,,,,,0.2314,-0.0231,1,,,,,0.5]);
-      
-      
-      //this.add('online', 10, [0,,0.1583,,0.4507,0.2316,,0.4005,,,,,,0.1841,,0.5019,,,1,,,,,0.5]); // Good enough
-      this.add('online', 10, [2,,0.1583,,0.4507,0.2316,,0.4005,,,,,,0.1841,,0.5019,,,1,,,,,0.5]);  // Also good
+      this.add('online', 10, [2,,0.1583,,0.4507,0.2316,,0.4005,,,,,,0.1841,,0.5019,,,1,,,,,0.5]);
+      this.add('offline', 10, [3,,0.2887,0.4888,0.486,0.2153,,-0.3216,,,,,,,,,,,1,,,,,0.52]);
     }
     
     // Hit:
@@ -140,15 +136,15 @@ $.Sound = {
   play: function(name) {
     if (this.active) {
       var sound = this.sounds[name];
-      var promise = sound.pool[sound.tick].play();
-      if (promise !== undefined) {
-        promise.then(_ => {
-          // Autoplay started!
-          sound.tick < sound.count - 1 ? sound.tick++ : sound.tick = 0;
-        }).catch(error => {
-          // Autoplay was prevented.
-        });
-      }
+      sound.pool[sound.tick].play();
+//      if (promise !== undefined) {
+//        promise.then(_ => {
+//          // Autoplay started!
+//          sound.tick < sound.count - 1 ? sound.tick++ : sound.tick = 0;
+//        }).catch(error => {
+//          // Autoplay was prevented.
+//        });
+//      }
     }
   },
   
@@ -395,7 +391,7 @@ $.Sound = {
               {n: [,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,147],
                f: []}
             ]
-          },
+          }
         ],
         rowLen: 4134,   // In sample lengths
         patternLen: 32,  // Rows per pattern

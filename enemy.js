@@ -14,8 +14,25 @@ $.Enemy = function(col, row) {
   this.canvas = this.buildCanvas(1, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
   this.bulletDelay = 0;
   this.targetMiner = 0;
+  
+  // TODO: Different colours. Could we use the col or row values to decide on a colour?
+  
+  // Calculate facing direction.
+  var rightBlock = $.Map.data[((this.col + 1) % 152) + (this.row * 152)];
+  var leftBlock = $.Map.data[(this.col == 0? 151 : this.col - 1) + (this.row * 152)];
+  var topBlock = $.Map.data[this.col + ((this.row == 0? 103 : this.row - 1) * 152)];
+  var bottomBlock = $.Map.data[this.col + (((this.row + 1) % 104) * 152)];
+  
+  console.log("rightBlock: " + rightBlock);
+  console.log("leftBlock: " + leftBlock);
+  console.log("topBlock: " + topBlock);
+  console.log("bottomBlock: " + bottomBlock);
+  if (rightBlock == '#') this.direction = 0;
+  if (leftBlock == '#') this.direction = 1;
+  if (topBlock == '#') this.direction = 2;
+  if (bottomBlock == '#') this.direction = 3;
+  console.log("Direction: " + this.direction);
 };
-
 /**
  * Updates the Enemy for the current frame. 
  */
@@ -31,7 +48,7 @@ $.Enemy.prototype.update = function() {
     // Only fire within a certain range, i.e. just within visual screen.
     if (distToEgo < 350) {
       
-      // TODO: Check the 10 miners, one each update. Reduce random to 5, so 5 * 10 miners = 50
+      // Check the 10 miners, one each update. Reduce random to 5, so 5 * 10 miners = 50
       var miner = $.Game.miners[this.targetMiner];
       // We only both to shoot online miners. When they're offline, it would be a waste of bullets.
       if (miner.online) {
@@ -70,7 +87,6 @@ $.Enemy.prototype.update = function() {
         
           // This is the enforced 3 frame delay between Bombs.
           this.bulletDelay = 3;
-        
         }
       }
     }
@@ -96,15 +112,55 @@ $.Enemy.prototype.draw = function(ctx, col, row) {
   ctx.shadowOffsetY = 0;
   ctx.shadowBlur    = 10;
   
-  ctx.drawImage(this.canvas, 
-      0, 0, 
-      $.Constants.CELL_WIDTH,
-      $.Constants.CELL_WIDTH / 2 + 2,
-      col * $.Constants.CELL_WIDTH, 
-      row * $.Constants.CELL_WIDTH + ($.Constants.CELL_WIDTH / 2) - 2,
-      $.Constants.CELL_WIDTH,
-      $.Constants.CELL_WIDTH / 2 + 2
-      );
+  switch (this.direction) {
+    case 0: // Right
+      ctx.drawImage(this.canvas, 
+          0, 0, 
+          $.Constants.CELL_WIDTH / 2 + 2,
+          $.Constants.CELL_WIDTH,
+          col * $.Constants.CELL_WIDTH + ($.Constants.CELL_WIDTH / 2) - 2, 
+          row * $.Constants.CELL_WIDTH,
+          $.Constants.CELL_WIDTH / 2 + 2,
+          $.Constants.CELL_WIDTH
+          );
+      break;
+      
+    case 1: // Left - TODO
+      ctx.drawImage(this.canvas, 
+          0, 0, 
+          $.Constants.CELL_WIDTH,
+          $.Constants.CELL_WIDTH / 2 + 2,
+          col * $.Constants.CELL_WIDTH, 
+          row * $.Constants.CELL_WIDTH + ($.Constants.CELL_WIDTH / 2) - 2,
+          $.Constants.CELL_WIDTH,
+          $.Constants.CELL_WIDTH / 2 + 2
+          );
+      break;
+      
+    case 2: // Top - TODO
+      ctx.drawImage(this.canvas, 
+          0, 0, 
+          $.Constants.CELL_WIDTH,
+          $.Constants.CELL_WIDTH / 2 + 2,
+          col * $.Constants.CELL_WIDTH, 
+          row * $.Constants.CELL_WIDTH + ($.Constants.CELL_WIDTH / 2) - 2,
+          $.Constants.CELL_WIDTH,
+          $.Constants.CELL_WIDTH / 2 + 2
+          );
+      break;
+      
+    case 3: // Bottom
+      ctx.drawImage(this.canvas, 
+          0, 0, 
+          $.Constants.CELL_WIDTH,
+          $.Constants.CELL_WIDTH / 2 + 2,
+          col * $.Constants.CELL_WIDTH, 
+          row * $.Constants.CELL_WIDTH + ($.Constants.CELL_WIDTH / 2) - 2,
+          $.Constants.CELL_WIDTH,
+          $.Constants.CELL_WIDTH / 2 + 2
+          );
+      break;
+  }
   
   ctx.shadowColor = 'rgba(0,0,0,0)';
   ctx.shadowBlur = 0;
@@ -129,10 +185,10 @@ $.Enemy.prototype.buildCanvas = function(seed, iconWidth, iconHeight) {
   ctx.strokeStyle = 'rgba(100, 100, 100, 1)';//'white';
   ctx.lineWidth = 2;
   
-  ctx.beginPath();
-  ctx.arc(shadowRadius, shadowRadius, shadowRadius - 1, 0, 2 * Math.PI);
-  ctx.closePath();
-  ctx.stroke();
+//  ctx.beginPath();
+//  ctx.arc(shadowRadius, shadowRadius, shadowRadius - 1, 0, 2 * Math.PI);
+//  ctx.closePath();
+//  ctx.stroke();
   ctx.restore();
   
   ctx.beginPath();

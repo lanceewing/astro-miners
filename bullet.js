@@ -16,9 +16,8 @@ $.Bullet = function(x, y, heading) {
   this.move();
 };
 
-// TODO: Move this into a common base class. Ego has it as well.
 $.Bullet.prototype.findNewPos = function() {
-  var endStep = this.step;// Math.round(this.step * $.Game.stepFactor);
+  var endStep = Math.round(this.step * $.Game.stepFactor);
   var currentStep = 1;
   var newXPos, newYPos;
   
@@ -26,7 +25,7 @@ $.Bullet.prototype.findNewPos = function() {
     // Attempt to move.
     var testX = this.x + Math.cos(this.heading) * Math.round(currentStep);
     var testY = this.y + Math.sin(this.heading) * Math.round(currentStep);
-    var blocked  = $.Map.circleIsBlocked(testX, testY, 1);
+    var blocked  = $.Map.circleIsBlocked(testX, testY, 5);
     
     if (!blocked) {
       newXPos = testX;
@@ -34,8 +33,6 @@ $.Bullet.prototype.findNewPos = function() {
       currentStep++;
     } else {
       this.hit = true;
-//      block = $.Map.getBlockAt(testX, testY);
-//      $.Map.clearBlock(block);
     }
   }
   

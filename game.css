@@ -58,11 +58,6 @@ body {
   position: static;
   display: inline-block;
 }
-#loading {
-  text-align: center;
-  width: 100%;
-  padding: 0px !important;
-}
 #screen {
   position: relative;
   width: 700px;

@@ -4,48 +4,33 @@
 $.Map = {
 
   /**
-   * Array of the two canvases that we swap between when the Glitch grows.
+   * Canvas for the Map.
    */
-  canvases: [],
+  canvas: null,
   
   /**
-   * The currently active canvas.
+   * 2D context for the Map canvas.
    */
-  canvasNum: 0,
-  
-  /**
-   * The 2d contexts for the two canvases.
-   */
-  contexts: [],
-  
+  context: null,
+
   /**
    * Initialises the Map state for the start of a game.
    */
   init: function() {
     this.data = this.map.split('');
-    this.canvases = [];
-    this.canvasNum = 0;
-    this.contexts = [];
-    
-    for (var i=0; i<2; i++) {
-      this.canvases[i] = document.createElement('canvas');
-      this.canvases[i].width = 152 * $.Constants.CELL_WIDTH * 2;
-      this.canvases[i].height = 104 * $.Constants.CELL_WIDTH * 2;
-      this.contexts[i] = this.canvases[i].getContext('2d');
-    }
-    
-    // TODO: It seems that the visible canvas is slower to draw to??
-    this.draw(0);
-    setTimeout(function() {
-      $.Map.draw(1);
-    }, 1);
+    this.canvas = document.createElement('canvas');
+    this.canvas.width = 152 * $.Constants.CELL_WIDTH * 2;
+    this.canvas.height = 104 * $.Constants.CELL_WIDTH * 2;
+    this.context = this.canvas.getContext('2d');
+    this.draw();
   },
   
   /**
    * The actual raw map data for the game. 
    * 
-   * # = Wall
-   * * = Glitch positions
+   * #   = Wall
+   * *   = Enemy positions
+   * 0-9 = Miner positions
    */
   map:  '########################################################################################################################################################'
       + '##########     0##   #################        ###########  ############     ##############  ########  #####     ################################ ### ###'
@@ -56,7 +41,7 @@ $.Map = {
       + '############    ###       ############# ###### #########     ############         ###   ####          #################    ####    ####           ######'
       + '#############   #####      ##############################   ##########                  ####         #################     ######  #####           #####'
       + '##############   #####      ####   ######################    ########                   #####        ############ ####    ########  ####    ##      ####'
-      + '##############   #######    ###     ##### ###############          ##                    ####  ###   ######        ###    #########  ##    ####      ###'
+      + '##############   #######   *###     ##### ###############          ##                    ####  ###   ######        ###    #########  ##    ####      ###'
       + '#############     ######    ##       ###   ######     ####         ###      ##            ########    #####       ####     ########       ######      ##'
       + '#3  #########     ####1     ##       ##     #####     ####          ##   #####             ######      ####    #######     #########     ##########    #'
       + '#    ########       ##      ###      ##     ####     ####               ######       #      ####         #     #######      #########   ############   #'
@@ -66,11 +51,11 @@ $.Map = {
       + '##4 #######2      #################                ##########     ########     ####       #  #   ###             ###       #####           ######    ###'
       + '#########        ##################                ##########     #######      ####   #      #         #######   ###       ####           ########  ####'
       + '#######         ####################               ##########     #######      ###   ###              ########   ###        ####         ###############'
-      + '######         #########################          #########       ####### ##  ###   ####             #########   ####     #########      ###    ########'
+      + '######         #########################*         #########       ####### ##  ###   ####             #########   ####     #########      ###    ########'
       + '#####         ##########################          ########        ##############    ####         #########  ##  ######    ##########     ##      ###   #'
       + '####    7     ####  ##################             #######   #   ##############     ####        ##########      ####### ############     ##            #'
       + '###    ##      ##    ############  ###       #      ######  ###  ############       #####      ####### ###     ######     ###########   ####           #'
-      + '##     ###*    ##     ###########  ####      ##     ######  ###   ####  ####         ######    ######   ##    ######      ##################       ## ##'
+      + '##     ###     ##     ###########  ####      ##     ######  ###   ####  ####         ######    ######   ##    ######      ##################       ## ##'
       + '##      ###   6##      ###################   ###   #######  #### #####  ####         #######    #####    #    #####       #######   ########    ########'
       + '##       ########      ###################    ##   ######    #########   ###         ########      #          #####      #######    ######### ##########'
       + '##   #    #######      ###   #############     ####  ####    #########   ###         #########               ###################    ####################'
@@ -174,7 +159,7 @@ $.Map = {
   },
   
   /**
-   * 
+   * Is the circle at position x,y of radius r blocked by a wall block? 
    */
   circleIsBlocked: function(x, y, r) {
     var bottomRightBlock = $.Map.getBlockAt(x + r, y + r);
@@ -255,30 +240,7 @@ $.Map = {
    * @returns The currently active canvas.
    */
   getCanvas: function() {
-    return this.canvases[this.canvasNum];
-  },
-  
-  /**
-   * @returns The currently active 2d context for the active canvas.
-   */
-  getContext: function() {
-    return this.contexts[this.canvasNum];
-  },
-  
-  /**
-   * Draws the given Enemy to the Map's canvases.
-   * 
-   * @param {$.Enemy} enemy The Enemy to draw.
-   */
-  drawEnemy: function(enemy) {
-    enemy.draw(this.contexts[0], enemy.col, enemy.row);
-    enemy.draw(this.contexts[0], enemy.col, enemy.row + 104);
-    enemy.draw(this.contexts[0], enemy.col + 152, enemy.row);
-    enemy.draw(this.contexts[0], enemy.col + 152, enemy.row + 104);
-    enemy.draw(this.contexts[1], enemy.col, enemy.row);
-    enemy.draw(this.contexts[1], enemy.col, enemy.row + 104);
-    enemy.draw(this.contexts[1], enemy.col + 152, enemy.row);
-    enemy.draw(this.contexts[1], enemy.col + 152, enemy.row + 104);
+    return this.canvas;
   },
   
   /**
@@ -287,56 +249,32 @@ $.Map = {
    * @param {$.Block} block The Block that identifies the map position to clear.
    */
   clearBlock: function(block) {
-    var ctx = this.contexts[0];
+    var ctx = this.context;
     ctx.clearRect(block.col * $.Constants.CELL_WIDTH, block.row * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
     ctx.clearRect(block.col * $.Constants.CELL_WIDTH, (block.row + 104) * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
     ctx.clearRect((block.col + 152) * $.Constants.CELL_WIDTH, block.row * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
     ctx.clearRect((block.col + 152) * $.Constants.CELL_WIDTH, (block.row + 104) * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
-    ctx = this.contexts[1];
-    ctx.clearRect(block.col * $.Constants.CELL_WIDTH, block.row * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
-    ctx.clearRect(block.col * $.Constants.CELL_WIDTH, (block.row + 104) * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
-    ctx.clearRect((block.col + 152) * $.Constants.CELL_WIDTH, block.row * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
-    ctx.clearRect((block.col + 152) * $.Constants.CELL_WIDTH, (block.row + 104) * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
-    
     block.type = ' ';
     this.putBlock(block);
-    this.updateSideBlocks(block,false);
+    this.updateSideBlocks(block);
   },
   
-  /**
-   * Swaps the two canvases so that the one that is currently active becomes 
-   * inactive and the other becomes active.
-   */
-  swap: function() {
-    this.canvasNum = (this.canvasNum + 1) % 2;
-  },
-  
-  updateSideBlocks: function(block, debug) {
-    for (var c = 0; c<2; c++) {
-      var ctx = this.contexts[c];
-      for (var col = block.col; col <= (block.col + 152); col += 152) {
-        for (var row = block.row; row <= (block.row + 104); row += 104) {
-          this.drawBlock(ctx, (col == 0? 151 : col - 1), row, (debug? 'blue' : false));
-          this.drawBlock(ctx, col, (row == 0? 103 : row - 1), (debug? 'green' : false));
-          this.drawBlock(ctx, (col + 1) % 304, row, (debug? 'red' : false));
-          this.drawBlock(ctx, col, ((row + 1) % 208), (debug? 'magenta' : false));
-        }
+  updateSideBlocks: function(block) {
+    var ctx = this.context;
+    for (var col = block.col; col <= (block.col + 152); col += 152) {
+      for (var row = block.row; row <= (block.row + 104); row += 104) {
+        this.drawBlock(ctx, (col == 0? 151 : col - 1), row);
+        this.drawBlock(ctx, col, (row == 0? 103 : row - 1));
+        this.drawBlock(ctx, (col + 1) % 304, row);
+        this.drawBlock(ctx, col, ((row + 1) % 208));
       }
     }
   },
   
-  drawBlock: function(ctx, xx, yy, debug) {
+  drawBlock: function(ctx, xx, yy) {
     var dataX = (xx % 152);
     var dataY = (yy % 104);
     var block = this.data[dataY * 152 + dataX];
-    if (debug) {
-      console.log('debug colour: ' + debug + ", block: " + block + ", yy: " + yy);
-      ctx.strokeStyle = debug;
-      ctx.beginPath();
-      ctx.rect(xx * $.Constants.CELL_WIDTH, yy * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH - 1, $.Constants.CELL_WIDTH - 1);
-      ctx.closePath();
-      ctx.stroke();
-    }
     if (block == '#') {
       ctx.fillStyle = '#22160B';
       ctx.strokeStyle = '#22160B';
@@ -344,9 +282,7 @@ $.Map = {
       ctx.rect(xx * $.Constants.CELL_WIDTH, yy * $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH - 1, $.Constants.CELL_WIDTH - 1);
       ctx.closePath();
       ctx.fill();
-      if (!debug) {
-        ctx.stroke();
-      }
+      ctx.stroke();
       
       ctx.strokeStyle = 'rgba(100, 100, 100, 1)';
 
@@ -402,17 +338,13 @@ $.Map = {
   
   /**
    * Uses the map data array to render the Map to the given canvas.
-   * 
-   * @param {number} canvasNum The number of the canvas to draw to.
    */
-  draw: function(canvasNum) {
-    var ctx = this.contexts[canvasNum];
+  draw: function() {
     var xx, yy;
     for (xx = 0; xx < 304; xx++) {
       for (yy = 0; yy < 208; yy++) {
-        this.drawBlock(ctx, xx, yy);
+        this.drawBlock(this.context, xx, yy);
       }
     }
   }
 };
-
