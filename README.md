@@ -11,8 +11,8 @@ Your mission is to locate the other nine Astro Miners and bring them back online
 
 # Controls
 **Move:** Mouse click/drag (or tap) in a direction to move in that direction.  
-**Dig:** Drag and release on the brown mineral area to mine it.
-**Kill:** Fly Astro Miner Kamikaze style into an alien parasite. Your miner may be taken offline in the process.
+**Dig:** Drag and release on the brown mineral area to mine it.  
+**Kill:** Fly Astro Miner Kamikaze style into an alien parasite. Your miner may be taken offline in the process.  
 **Pause:** P  
 
 # Credits
