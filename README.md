@@ -24,7 +24,10 @@ Your mission is to locate the other nine Astro Miners and bring them back online
 
 # Credits
 **Created By:** Lance Ewing  
+
 **Original Music By:** Lance Ewing  
+
 **Sound Effect Library:** [JSFXR](https://github.com/mneubrand/jsfxr) by Markus Neubrand  
+
 **Music Synth Library:** [SoundBox] (http://sb.bitsnbites.eu/) by Marcus Geelnard  
 
