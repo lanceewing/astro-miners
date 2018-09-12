@@ -8,30 +8,25 @@
 $.Enemy = function(col, row) {
   this.col = (col % 152);
   this.row = (row % 104);
+  //this.colour = [ 'rgba(255, 0, 0, 1)', 'rgba(0, 255, 0, 1)', 'rgba(255, 255, 0, 1)' ][(col % 3)];
+  this.colour = 'hsla(' + ((this.col * 10) % 360) + ', 100%, 80%, 0.6)';
   this.x = this.col * $.Constants.CELL_WIDTH + ($.Constants.CELL_WIDTH / 2);
   this.y = this.row * $.Constants.CELL_WIDTH + ($.Constants.CELL_WIDTH / 2);
   this.key = 'e_' + col + '_' + row;
-  this.canvas = this.buildCanvas(1, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
+  this.canvas = this.buildCanvas(col, $.Constants.CELL_WIDTH, $.Constants.CELL_WIDTH);
   this.bulletDelay = 0;
   this.targetMiner = 0;
-  
-  // TODO: Different colours. Could we use the col or row values to decide on a colour?
   
   // Calculate facing direction.
   var rightBlock = $.Map.data[((this.col + 1) % 152) + (this.row * 152)];
   var leftBlock = $.Map.data[(this.col == 0? 151 : this.col - 1) + (this.row * 152)];
   var topBlock = $.Map.data[this.col + ((this.row == 0? 103 : this.row - 1) * 152)];
   var bottomBlock = $.Map.data[this.col + (((this.row + 1) % 104) * 152)];
-  
-  console.log("rightBlock: " + rightBlock);
-  console.log("leftBlock: " + leftBlock);
-  console.log("topBlock: " + topBlock);
-  console.log("bottomBlock: " + bottomBlock);
+
   if (rightBlock == '#') this.direction = 0;
   if (leftBlock == '#') this.direction = 1;
   if (topBlock == '#') this.direction = 2;
   if (bottomBlock == '#') this.direction = 3;
-  console.log("Direction: " + this.direction);
 };
 /**
  * Updates the Enemy for the current frame. 
@@ -66,7 +61,7 @@ $.Enemy.prototype.update = function() {
             
             var blocked  = $.Map.circleIsBlocked(testX, testY, 1);
             if (!blocked) {
-              currentStep++;   // TODO: Maybe one pixel at a time is too fine grained.
+              currentStep++;
             } else {
               lineOfSightToEgo = false;
             }
@@ -107,7 +102,7 @@ $.Enemy.prototype.update = function() {
  * @param {number} row The row to draw the Enemy at.
  */
 $.Enemy.prototype.draw = function(ctx, col, row) {
-  ctx.shadowColor   = 'rgba(255, 0, 0, 1)';
+  ctx.shadowColor   = this.colour;
   ctx.shadowOffsetX = 0;
   ctx.shadowOffsetY = 0;
   ctx.shadowBlur    = 10;
@@ -125,25 +120,25 @@ $.Enemy.prototype.draw = function(ctx, col, row) {
           );
       break;
       
-    case 1: // Left - TODO
+    case 1: // Left
       ctx.drawImage(this.canvas, 
-          0, 0, 
-          $.Constants.CELL_WIDTH,
+          $.Constants.CELL_WIDTH / 2, 0, 
           $.Constants.CELL_WIDTH / 2 + 2,
-          col * $.Constants.CELL_WIDTH, 
-          row * $.Constants.CELL_WIDTH + ($.Constants.CELL_WIDTH / 2) - 2,
           $.Constants.CELL_WIDTH,
-          $.Constants.CELL_WIDTH / 2 + 2
+          col * $.Constants.CELL_WIDTH, 
+          row * $.Constants.CELL_WIDTH,
+          $.Constants.CELL_WIDTH / 2 + 2,
+          $.Constants.CELL_WIDTH
           );
       break;
       
-    case 2: // Top - TODO
+    case 2: // Top
       ctx.drawImage(this.canvas, 
-          0, 0, 
+          0, $.Constants.CELL_WIDTH / 2, 
           $.Constants.CELL_WIDTH,
           $.Constants.CELL_WIDTH / 2 + 2,
           col * $.Constants.CELL_WIDTH, 
-          row * $.Constants.CELL_WIDTH + ($.Constants.CELL_WIDTH / 2) - 2,
+          row * $.Constants.CELL_WIDTH,
           $.Constants.CELL_WIDTH,
           $.Constants.CELL_WIDTH / 2 + 2
           );
@@ -179,17 +174,7 @@ $.Enemy.prototype.buildCanvas = function(seed, iconWidth, iconHeight) {
   }
   
   var ctx = $.Util.create2dContext(iconWidth, iconHeight);
-
-  ctx.save();
   var shadowRadius = (iconWidth / 2);
-  ctx.strokeStyle = 'rgba(100, 100, 100, 1)';//'white';
-  ctx.lineWidth = 2;
-  
-//  ctx.beginPath();
-//  ctx.arc(shadowRadius, shadowRadius, shadowRadius - 1, 0, 2 * Math.PI);
-//  ctx.closePath();
-//  ctx.stroke();
-  ctx.restore();
   
   ctx.beginPath();
   ctx.arc(shadowRadius, shadowRadius, shadowRadius - 3, 0, 2 * Math.PI);
@@ -207,7 +192,7 @@ $.Enemy.prototype.buildCanvas = function(seed, iconWidth, iconHeight) {
     for (var y = 0; y < blockDensityY; y++) {
       var j = y < blockMidY ? y : (blockDensityY - 1) - y;
       if ((hashRand[i] >> j & 1) == 1) {
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.9)';
+        ctx.fillStyle = this.colour;
       } else {
         ctx.fillStyle = 'rgba(0,0,0,0.0)';
       }

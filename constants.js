@@ -7,4 +7,4 @@ $.Constants.ROOM_Y_PIXELS = ($.Constants.CELL_WIDTH * 104);
 $.Constants.SCREEN_WIDTH = 1000;
 $.Constants.SCREEN_HEIGHT = 1000;
 $.Constants.WRAP_WIDTH = 700;
-$.Constants.WRAP_HEIGHT = 840;
+$.Constants.WRAP_HEIGHT = 787;

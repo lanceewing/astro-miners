@@ -437,15 +437,14 @@ $.Game = {
         if ($.Game.keys[32] || $.Game.mouseButton) {
           $.Game.mouseButton = 0;
           
+          // This says countdown is about to start (in 1 second).
+          this.counting = true;
+          
           // The space key was pressed, so we start the countdown process. This gives the player
           // some time to get ready.
           this.fadeOut($.msg1);
           this.fadeOut($.msg2);
           this.fadeOut($.msg3);
-
-          // Create a single canvas to render the sprite sheet for the four directions.
-          // This says countdown is about to start (in 1 second).
-          this.counting = true;
           
           setTimeout(function() {
             if (!$.Game.running) $.Game.init(false);
@@ -525,13 +524,16 @@ $.Game = {
     // Create a single canvas to render the sprite sheet for the four directions.
     this.showText(3, "OFFLINE");
     
-    // Play the explosion sound and trigger the explode transition on Ego.
-    $.Sound.play('explosion');
+    // Play the explosion sound.
+    //$.Sound.play('explosion');
+    $.Sound.play('over');
     
     // After 5 seconds, enable keyboard input again and ask the player to press 
     // SPACE to restart.
     setTimeout(function() {
-      $.Game.showText(2, 'Click to restart');
+      if (!$.Game.counting && !$.Game.running) {
+        $.Game.showText(2, 'Click to restart');
+      }
       $.Game.enableInput();
     }, 3000);
   },
@@ -673,7 +675,7 @@ $.Game = {
         this.bullets[bulletNum].move();
         
         block = $.Map.getBlockAt(bullet.x, bullet.y);
-        if ((block.type == '#') || (block.type == '+')) {
+        if ((block.type == '#') || (block.type == '/')) {
           // TODO: + to be rock?
           bullet.hit = true;
         } else {

@@ -152,7 +152,7 @@ $.Ego.prototype.findNewPos = function() {
   var currentStep = 1;
   var newXPos, newYPos;
   
-  while (this.heading != null && (currentStep < endStep)) {
+  while (this.heading != null && (currentStep < endStep) && $.Game.running) {
     // Attempt to move.
     var testX = this.x + Math.cos(this.heading) * Math.round(currentStep);
     var testY = this.y + Math.sin(this.heading) * Math.round(currentStep);
@@ -170,6 +170,7 @@ $.Ego.prototype.findNewPos = function() {
         if (hitBlock.type == '#') {    // Mine-able Wall
           if (!this.wallHit) {
             if (this.digging) {
+              $.Sound.play('dig');
               $.Map.clearBlock(hitBlock);
             }
             hitWall = true;
@@ -215,8 +216,6 @@ $.Ego.prototype.update = function() {
       var playerScreenX = (~~($.Constants.WRAP_WIDTH / 2));
       var playerScreenY = (~~($.Constants.WRAP_HEIGHT / 2));
       var clickHeading = Math.atan2(playerScreenY - $.Game.dragEnd.y, playerScreenX - $.Game.dragEnd.x) + ((($.Game.rotateAngle + 180) % 360) * Math.PI / 180);
-      var dragDist = $.Util.dist($.Game.dragEnd, $.Game.dragStart);
-      var dragDuration = $.Game.dragEnd.t - $.Game.dragStart.t;
       var distToEgo = $.Util.dist($.Game.dragEnd, { x: playerScreenX, y: playerScreenY});
       var mapX = this.x + Math.cos(clickHeading) * distToEgo;
       var mapY = this.y + Math.sin(clickHeading) * distToEgo;
@@ -226,15 +225,18 @@ $.Ego.prototype.update = function() {
       
       if (this.heading == null) this.heading = clickHeading;
       
-      if ((dragDist > 5) && (dragDuration > 200) && (block.type == '#')) {
-        // If the drag distance and duration are beyond a threshold indicating there 
-        // was a drag (and not just a click in place), and the end point is a wall
-        // block, then ego will move there and dig.
-        this.digging = true;
-        
-      } else {
-        // Otherwise digging is disabled and you stop at the wall.
-        this.digging = false;
+      // Default is digging is off.
+      this.digging = false;
+      
+      if (distToEgo < this.size * 2) {
+        if (block.type == '#') {
+          // If user clicked on wall block, and it is next to ego, then dig.
+          this.digging = true;
+        } else {
+          if (block.type == '/') {
+            $.Sound.play('no');
+          }
+        }
       }
     }
   } else {
