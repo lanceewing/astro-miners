@@ -10,12 +10,12 @@ It isn't long before you discover that the mining operations have awoken some ki
 Your mission is to locate the other nine Astro Miners and bring them back online, and to eliminate the alien menace.
 
 # Controls
-**Move:** Click or tap in open space to move.
-**Dig:** Click or tap on nearby blocks to dig.
-**Aim:** Drag for a careful aim.
-**Kill:** Fly Astro Miner Kamikaze style into an alien parasite. Your miner may be taken offline in the process.  
-**Switch:** Use the round buttons at the bottom to switch between online miners.
-**Pause:** P  
+**Move:** Click or tap in open space to move. 
+**Dig:** Click or tap on nearby blocks to dig. 
+**Aim:** Drag for a careful aim. 
+**Kill:** Fly Astro Miner Kamikaze style into an alien parasite. Your miner may be taken offline in the process.   
+**Switch:** Use the round buttons at the bottom to switch between online miners. 
+**Pause:** P   
 
 # Credits
 **Created By:** Lance Ewing  
