@@ -31,5 +31,5 @@ Touch an offline miner with your miner to bring in back online.
 
 **Sound Effect Library:** [JSFXR](https://github.com/mneubrand/jsfxr) by Markus Neubrand  
 
-**Music Synth Library:** [SoundBox] (http://sb.bitsnbites.eu/) by Marcus Geelnard  
+**Music Synth Library:** [SoundBox] (https://sb.bitsnbites.eu/) by Marcus Geelnard  
 
