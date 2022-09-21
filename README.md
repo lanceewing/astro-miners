@@ -24,6 +24,11 @@ Your mission is to locate the other nine Astro Miners and bring them back online
 
 Touch an offline miner with your miner to bring in back online.
 
+# Screenshots
+
+![](img/screenshot_1.jpg)           |  ![](img/screenshot_2.jpg)
+:-------------------------:|:-------------------------:
+
 # Credits
 **Created By:** Lance Ewing  
 
