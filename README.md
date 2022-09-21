@@ -1,5 +1,5 @@
 # Astro Miners
-This is an an entry for js13kGames 2018. The theme for this year is "Offline", and in this case your off-world "Astro Miner" fleet are mysteriously all offline!
+This is an an entry for [js13kGames 2018](https://js13kgames.com/entries/2018). The theme for this year is "Offline", and in this case your off-world "Astro Miner" fleet are mysteriously all offline!
 
 The year is 2349 AD, where a private company, Astro Miner Co. (AMC) has begun mining operations on the surface of a large asteriod in our solar system. You work for AMC and are responsible for remotely controlling the 10 robotic miner ships that are deployed to the asteroid.
 
